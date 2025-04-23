@@ -56,6 +56,12 @@ class CDF97 {
   [[nodiscard]] auto idwt2d_multi_res() -> std::vector<vecd_type>;
   void idwt3d_multi_res(std::vector<vecd_type>&);
 
+
+  //helper
+
+  void set_wavelet_type(std::string);
+  void set_padding_mode(std::string);
+
  private:
   using itd_type = vecd_type::iterator;
   using citd_type = vecd_type::const_iterator;
@@ -121,6 +127,17 @@ class CDF97 {
   void QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
+
+  //sym13
+  void Sym13Analysis(double* signal, size_t signal_length);
+  void Sym13Synthesis(double* signal, size_t signal_length);
+
+
+  std::string m_wavelet_type = "sym13"; //to test sym13
+  std::string m_padding_mode = "symmetric";
+
+
+
 
   //
   // Private data members

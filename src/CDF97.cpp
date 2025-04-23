@@ -1,5 +1,5 @@
 #include "CDF97.h"
-
+#include "Sym13Coeffs.h"
 #include <algorithm>
 #include <cassert>
 #include <numeric>  // std::accumulate()
@@ -318,25 +318,48 @@ void sperr::CDF97::m_idwt2d(itd_type plane, std::array<size_t, 2> len_xy, size_t
 void sperr::CDF97::m_dwt1d_one_level(itd_type array, size_t array_len)
 {
   std::copy(array, array + array_len, m_qcc_buf.begin());
-  if (array_len % 2 == 0) {
-    this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), array_len);
-    m_gather_even(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+  if (m_wavelet_type == "sym13"){
+    this->Sym13Analysis(m_qcc_buf.data(), array_len);
+    if (array_len % 2 == 0) {
+      m_gather_even(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+    }
+    else {
+      m_gather_odd(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+    }
+    
   }
-  else {
-    this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), array_len);
-    m_gather_odd(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+  else{
+    if (array_len % 2 == 0) {
+      this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), array_len);
+      m_gather_even(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+    }
+    else {
+      this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), array_len);
+      m_gather_odd(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+    }
   }
 }
 
 void sperr::CDF97::m_idwt1d_one_level(itd_type array, size_t array_len)
 {
-  if (array_len % 2 == 0) {
-    m_scatter_even(array, array + array_len, m_qcc_buf.begin());
-    this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data(), array_len);
+  if (m_wavelet_type == "sym13"){
+    if (array_len % 2 == 0) {
+      m_scatter_even(array, array + array_len, m_qcc_buf.begin());
+    }
+    else {
+      m_scatter_odd(array, array + array_len, m_qcc_buf.begin());
+    }
+    this->Sym13Synthesis(m_qcc_buf.data(), array_len);
   }
-  else {
-    m_scatter_odd(array, array + array_len, m_qcc_buf.begin());
-    this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), array_len);
+  else{
+    if (array_len % 2 == 0) {
+      m_scatter_even(array, array + array_len, m_qcc_buf.begin());
+      this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data(), array_len);
+    }
+    else {
+      m_scatter_odd(array, array + array_len, m_qcc_buf.begin());
+      this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), array_len);
+    }
   }
   std::copy(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
 }
@@ -351,52 +374,99 @@ void sperr::CDF97::m_dwt2d_one_level(itd_type plane, std::array<size_t, 2> len_x
   const auto beg2 = beg + max_len;
 
   // First, perform DWT along X for every row
-  if (len_xy[0] % 2 == 0) {
-    for (size_t i = 0; i < len_xy[1]; i++) {
-      auto pos = plane + i * m_dims[0];
-      std::copy(pos, pos + len_xy[0], beg);
-      this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xy[0]);
-      m_gather_even(beg, beg + len_xy[0], pos);
-    }
-  }
-  else  // Odd length
-  {
-    for (size_t i = 0; i < len_xy[1]; i++) {
-      auto pos = plane + i * m_dims[0];
-      std::copy(pos, pos + len_xy[0], beg);
-      this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xy[0]);
-      m_gather_odd(beg, beg + len_xy[0], pos);
-    }
-  }
 
-  // Second, perform DWT along Y for every column
+   // Second, perform DWT along Y for every column
   // Note, I've tested that up to 1024^2 planes it is actually slightly slower
   // to transpose the plane and then perform the transforms. This was consistent
   // on both a MacBook and a RaspberryPi 3. Note2, I've tested transpose again
   // on an X86 linux machine using gcc, clang, and pgi. Again the difference is
   // either indistinguishable, or the current implementation has a slight edge.
 
-  if (len_xy[1] % 2 == 0) {
-    for (size_t x = 0; x < len_xy[0]; x++) {
-      for (size_t y = 0; y < len_xy[1]; y++)
-        m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
-      this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xy[1]);
-      m_gather_even(beg, beg + len_xy[1], beg2);
-      for (size_t y = 0; y < len_xy[1]; y++)
-        *(plane + y * m_dims[0] + x) = *(beg2 + y);
+
+  if (m_wavelet_type == "sym13"){
+    if (len_xy[0] % 2 == 0) {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        std::copy(pos, pos + len_xy[0], beg);
+        this->Sym13Analysis(m_qcc_buf.data(), len_xy[0]);
+        m_gather_even(beg, beg + len_xy[0], pos);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        std::copy(pos, pos + len_xy[0], beg);
+        this->Sym13Analysis(m_qcc_buf.data(), len_xy[0]);
+        m_gather_odd(beg, beg + len_xy[0], pos);
+      }
+    }
+    if (len_xy[1] % 2 == 0) {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        this->Sym13Analysis(m_qcc_buf.data(), len_xy[1]);
+        m_gather_even(beg, beg + len_xy[1], beg2);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        this->Sym13Analysis(m_qcc_buf.data(), len_xy[1]);
+        m_gather_odd(beg, beg + len_xy[1], beg2);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
     }
   }
-  else  // Odd length
-  {
-    for (size_t x = 0; x < len_xy[0]; x++) {
-      for (size_t y = 0; y < len_xy[1]; y++)
-        m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
-      this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xy[1]);
-      m_gather_odd(beg, beg + len_xy[1], beg2);
-      for (size_t y = 0; y < len_xy[1]; y++)
-        *(plane + y * m_dims[0] + x) = *(beg2 + y);
+  else{
+    if (len_xy[0] % 2 == 0) {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        std::copy(pos, pos + len_xy[0], beg);
+        this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xy[0]);
+        m_gather_even(beg, beg + len_xy[0], pos);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        std::copy(pos, pos + len_xy[0], beg);
+        this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xy[0]);
+        m_gather_odd(beg, beg + len_xy[0], pos);
+      }
+    }
+    if (len_xy[1] % 2 == 0) {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xy[1]);
+        m_gather_even(beg, beg + len_xy[1], beg2);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xy[1]);
+        m_gather_odd(beg, beg + len_xy[1], beg2);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
     }
   }
+
+ 
+
+  
 }
 
 void sperr::CDF97::m_idwt2d_one_level(itd_type plane, std::array<size_t, 2> len_xy)
@@ -406,44 +476,88 @@ void sperr::CDF97::m_idwt2d_one_level(itd_type plane, std::array<size_t, 2> len_
   const auto beg2 = beg + max_len;     // Second half of the buffer
 
   // First, perform IDWT along Y for every column
-  if (len_xy[1] % 2 == 0) {
-    for (size_t x = 0; x < len_xy[0]; x++) {
-      for (size_t y = 0; y < len_xy[1]; y++)
-        m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
-      m_scatter_even(beg, beg + len_xy[1], beg2);
-      this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + max_len, len_xy[1]);
-      for (size_t y = 0; y < len_xy[1]; y++)
-        *(plane + y * m_dims[0] + x) = *(beg2 + y);
+  if (m_wavelet_type == "sym13"){
+    if (len_xy[1] % 2 == 0) {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        m_scatter_even(beg, beg + len_xy[1], beg2);
+        this->Sym13Synthesis(m_qcc_buf.data() + max_len, len_xy[1]);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
     }
-  }
-  else  // Odd length
-  {
-    for (size_t x = 0; x < len_xy[0]; x++) {
-      for (size_t y = 0; y < len_xy[1]; y++)
-        m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
-      m_scatter_odd(beg, beg + len_xy[1], beg2);
-      this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + max_len, len_xy[1]);
-      for (size_t y = 0; y < len_xy[1]; y++)
-        *(plane + y * m_dims[0] + x) = *(beg2 + y);
+    else  // Odd length
+    {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        m_scatter_odd(beg, beg + len_xy[1], beg2);
+        this->Sym13Synthesis(m_qcc_buf.data() + max_len, len_xy[1]);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
     }
-  }
 
-  // Second, perform IDWT along X for every row
-  if (len_xy[0] % 2 == 0) {
-    for (size_t i = 0; i < len_xy[1]; i++) {
-      auto pos = plane + i * m_dims[0];
-      m_scatter_even(pos, pos + len_xy[0], beg);
-      this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data(), len_xy[0]);
-      std::copy(beg, beg + len_xy[0], pos);
+    // Second, perform IDWT along X for every row
+    if (len_xy[0] % 2 == 0) {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        m_scatter_even(pos, pos + len_xy[0], beg);
+        this->Sym13Synthesis(m_qcc_buf.data(), len_xy[0]);
+        std::copy(beg, beg + len_xy[0], pos);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        m_scatter_odd(pos, pos + len_xy[0], beg);
+        this->Sym13Synthesis(m_qcc_buf.data(), len_xy[0]);
+        std::copy(beg, beg + len_xy[0], pos);
+      }
     }
   }
-  else  // Odd length
-  {
-    for (size_t i = 0; i < len_xy[1]; i++) {
-      auto pos = plane + i * m_dims[0];
-      m_scatter_odd(pos, pos + len_xy[0], beg);
-      this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), len_xy[0]);
-      std::copy(beg, beg + len_xy[0], pos);
+  else{
+    if (len_xy[1] % 2 == 0) {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        m_scatter_even(beg, beg + len_xy[1], beg2);
+        this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + max_len, len_xy[1]);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t x = 0; x < len_xy[0]; x++) {
+        for (size_t y = 0; y < len_xy[1]; y++)
+          m_qcc_buf[y] = *(plane + y * m_dims[0] + x);
+        m_scatter_odd(beg, beg + len_xy[1], beg2);
+        this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + max_len, len_xy[1]);
+        for (size_t y = 0; y < len_xy[1]; y++)
+          *(plane + y * m_dims[0] + x) = *(beg2 + y);
+      }
+    }
+
+    // Second, perform IDWT along X for every row
+    if (len_xy[0] % 2 == 0) {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        m_scatter_even(pos, pos + len_xy[0], beg);
+        this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data(), len_xy[0]);
+        std::copy(beg, beg + len_xy[0], pos);
+      }
+    }
+    else  // Odd length
+    {
+      for (size_t i = 0; i < len_xy[1]; i++) {
+        auto pos = plane + i * m_dims[0];
+        m_scatter_odd(pos, pos + len_xy[0], beg);
+        this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), len_xy[0]);
+        std::copy(beg, beg + len_xy[0], pos);
+      }
     }
   }
 }
@@ -465,38 +579,75 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-
-  if (len_xyz[2] % 2 == 0) {  // Even length
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
-        // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
-        // Step 2
-        this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xyz[2]);
-        // Step 3
-        m_gather_even(beg, beg2, beg2);
-        // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+  if(m_wavelet_type == "sym13"){
+    if (len_xyz[2] % 2 == 0) {  // Even length
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          this->Sym13Analysis(m_qcc_buf.data(), len_xyz[2]);
+          // Step 3
+          m_gather_even(beg, beg2, beg2);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
+      }
+    }
+    else {  // Odd length
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          this->Sym13Analysis(m_qcc_buf.data(), len_xyz[2]);
+          // Step 3
+          m_gather_odd(beg, beg2, beg2);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
       }
     }
   }
-  else {  // Odd length
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
-        // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
-        // Step 2
-        this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xyz[2]);
-        // Step 3
-        m_gather_odd(beg, beg2, beg2);
-        // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+  else{
+    if (len_xyz[2] % 2 == 0) {  // Even length
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xyz[2]);
+          // Step 3
+          m_gather_even(beg, beg2, beg2);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
+      }
+    }
+    else {  // Odd length
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xyz[2]);
+          // Step 3
+          m_gather_odd(beg, beg2, beg2);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
       }
     }
   }
@@ -513,42 +664,80 @@ void sperr::CDF97::m_idwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xy
   // 2) scatter coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 3) use appropriate even/odd Qcc*** function to transform it
   // 4) put the Z column back to their locations as a Z column.
-
-  if (len_xyz[2] % 2 == 0) {
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
-        // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
-        // Step 2
-        m_scatter_even(beg, beg2, beg2);
-        // Step 3
-        this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
-        // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+  if (m_wavelet_type == "sym13"){
+    if (len_xyz[2] % 2 == 0) {
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          m_scatter_even(beg, beg2, beg2);
+          // Step 3
+          this->Sym13Synthesis(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
+      }
+    }
+    else {
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          m_scatter_odd(beg, beg2, beg2);
+          // Step 3
+          this->Sym13Synthesis(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
       }
     }
   }
-  else {
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
-        // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
-        // Step 2
-        m_scatter_odd(beg, beg2, beg2);
-        // Step 3
-        this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
-        // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+  else{
+    if (len_xyz[2] % 2 == 0) {
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          m_scatter_even(beg, beg2, beg2);
+          // Step 3
+          this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
       }
     }
-  }
+    else {
+      for (size_t y = 0; y < len_xyz[1]; y++) {
+        for (size_t x = 0; x < len_xyz[0]; x++) {
+          const size_t xy_offset = y * m_dims[0] + x;
+          // Step 1
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+          // Step 2
+          m_scatter_odd(beg, beg2, beg2);
+          // Step 3
+          this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+          // Step 4
+          for (size_t z = 0; z < len_xyz[2]; z++)
+            m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        }
+      }
+    }
 
+  }
+  
   // Second, do one level of inverse transform on all XY planes.
   for (size_t z = 0; z < len_xyz[2]; z++) {
     const size_t offset = plane_size_xy * z;
@@ -752,4 +941,124 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
 
   for (size_t i = 1; i < signal_length - 1; i += 2)
     signal[i] *= (-INV_EPSILON);
+}
+
+void CDF97::Sym13Analysis(double* signal, size_t n) {
+  //using namespace sym13;
+  const int L   = int(sym13::kernel_length);   // 26
+  const int pad = L - 1;         // 25
+
+  // 1) 延拓到 ext 长度 n + 2*pad
+  std::vector<double> ext(n + 2*pad);
+  if (m_padding_mode == "periodic") {
+    // 周期延拓
+    for (int i = 0; i < pad; ++i) {
+      int idx = (i - pad) % int(n);
+      if (idx < 0) idx += int(n);
+      ext[i] = signal[idx];
+    }
+    std::copy(signal, signal + n, ext.begin() + pad);
+    for (int i = 0; i < pad; ++i) {
+      ext[n + pad + i] = signal[i % n];
+    }
+  } else {
+    // 对称延拓
+    for (int i = 0; i < pad; ++i) {
+      ext[i] = signal[pad - 1 - i];
+    }
+    std::copy(signal, signal + n, ext.begin() + pad);
+    for (int i = 0; i < pad; ++i) {
+      ext[n + pad + i] = signal[n - 1 - i];
+    }
+  }
+
+  // 2) 计算低频/高频输出长度
+  size_t nA = (n + 1) / 2;  // ceil(n/2)
+  size_t nD = n / 2;        // floor(n/2)
+
+  // 3) 卷积 + 下采样
+  std::vector<double> out(n);
+  // 低频部分
+  for (size_t i = 0; i < nA; ++i) {
+    double a = 0;
+    size_t start = 2 * i;
+    for (int k = 0; k < L; ++k) {
+      a += sym13::dec_lo[k] * ext[start + k];
+    }
+    out[i] = a;
+  }
+  // 高频部分
+  for (size_t i = 0; i < nD; ++i) {
+    double d = 0;
+    size_t start = 2 * i;
+    for (int k = 0; k < L; ++k) {
+      d += sym13::dec_hi[k] * ext[start + k];
+    }
+    out[nA + i] = d;
+  }
+
+  // 4) 写回
+  std::copy(out.begin(), out.end(), signal);
+}
+
+void CDF97::Sym13Synthesis(double* signal, size_t n, bool periodic) {
+  //using namespace sym13;
+  const int L   = int(sym13::kernel_length);
+  const int pad = L - 1;
+
+  // 1) 从 signal[0..nA-1]、[nA..n-1] 拆出低频 cA 和 高频 cD
+  size_t nA = (n + 1) / 2;
+  // 注意 nD = n - nA
+  // 2) 上采样
+  std::vector<double> upA(2 * n, 0.0), upD(2 * n, 0.0);
+  for (size_t i = 0; i < nA; ++i) {
+    upA[2*i] = signal[i];
+  }
+  for (size_t i = 0; i < n - nA; ++i) {
+    upD[2*i] = signal[nA + i];
+  }
+
+  // 3) 延拓到 buf 长度 2*n + 2*pad
+  std::vector<double> extA(2*n + 2*pad), extD(2*n + 2*pad);
+  if (m_padding_mode == "periodic"c) {
+    // 周期延拓
+    for (int i = 0; i < pad; ++i) {
+      int idx = (i - pad) % int(2*n);
+      if (idx < 0) idx += int(2*n);
+      extA[i] = upA[idx];
+      extD[i] = upD[idx];
+    }
+    std::copy(upA.begin(), upA.end(), extA.begin() + pad);
+    std::copy(upD.begin(), upD.end(), extD.begin() + pad);
+    for (int i = 0; i < pad; ++i) {
+      extA[2*n + pad + i] = upA[i % (2*n)];
+      extD[2*n + pad + i] = upD[i % (2*n)];
+    }
+  } else {
+    // 对称延拓
+    for (int i = 0; i < pad; ++i) {
+      extA[i] = upA[pad - 1 - i];
+      extD[i] = upD[pad - 1 - i];
+    }
+    std::copy(upA.begin(), upA.end(), extA.begin() + pad);
+    std::copy(upD.begin(), upD.end(), extD.begin() + pad);
+    for (int i = 0; i < pad; ++i) {
+      extA[2*n + pad + i] = upA[2*n - 1 - i];
+      extD[2*n + pad + i] = upD[2*n - 1 - i];
+    }
+  }
+
+  // 4) 卷积 + 合并
+  std::vector<double> tmp(2 * n);
+  for (int i = 0; i < int(2 * n); ++i) {
+    double a = 0, d = 0;
+    for (int k = 0; k < L; ++k) {
+      a += sym13::rec_lo[k] * extA[i + k];
+      d += sym13::rec_hi[k] * extD[i + k];
+    }
+    tmp[i] = a + d;
+  }
+
+  // 5) 写回（注意调用者必须保证 signal[] 空间至少能写入 2*n 个元素）
+  std::copy(tmp.begin(), tmp.end(), signal);
 }

@@ -1020,7 +1020,7 @@ void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
 
   // 3) 延拓到 buf 长度 2*n + 2*pad
   std::vector<double> extA(2*n + 2*pad), extD(2*n + 2*pad);
-  if (m_padding_mode == "periodic"c) {
+  if (m_padding_mode == "periodic") {
     // 周期延拓
     for (int i = 0; i < pad; ++i) {
       int idx = (i - pad) % int(2*n);

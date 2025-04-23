@@ -943,7 +943,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
-void CDF97::Sym13Analysis(double* signal, size_t n) {
+void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
   //using namespace sym13;
   const int L   = int(sym13::kernel_length);   // 26
   const int pad = L - 1;         // 25
@@ -1001,7 +1001,7 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
   std::copy(out.begin(), out.end(), signal);
 }
 
-void CDF97::Sym13Synthesis(double* signal, size_t n, bool periodic) {
+void sperr::CDF97::Sym13Synthesis(double* signal, size_t n, bool periodic) {
   //using namespace sym13;
   const int L   = int(sym13::kernel_length);
   const int pad = L - 1;

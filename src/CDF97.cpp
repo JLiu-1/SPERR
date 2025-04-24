@@ -943,7 +943,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
-static ALWAYS_INLINE size_t reflect_index(size_t idx, size_t n) {
+ALWAYS_INLINE size_t reflect_index(size_t idx, size_t n) {
     size_t period = 2*n - 2;
     idx %= period;
     return (idx < n ? idx : period - idx);

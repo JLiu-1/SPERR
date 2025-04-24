@@ -997,8 +997,8 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
             for (int m = 0; m < L; ++m) {
                 if (i >= (size_t)m && (i - m) < ext_len) {
                     double v = ext[i - m];
-                    s_lo += dec_lo[m] * v;
-                    s_hi += dec_hi[m] * v;
+                    s_lo += sym13::dec_lo[m] * v;
+                    s_hi += sym13::dec_hi[m] * v;
                 }
             }
             y_lo[i] = s_lo;

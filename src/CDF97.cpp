@@ -943,31 +943,45 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
+namespace sperr {
+
+// 折返对称索引：把任意非负 idx 映射到 [0..n-1]
 static inline size_t reflect_index(size_t idx, size_t n) {
     size_t period = 2*n - 2;
     idx %= period;
     return (idx < n ? idx : period - idx);
 }
 
-void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
-    const int L   = sym13::kernel_length;   // sym13 滤波器长度
+void CDF97::Sym13Analysis(double* signal, size_t n) {
+    const int L   = sym13::kernel_length;   // Sym13 的滤波器长度
     const int pad = L - 1;
+    size_t half = n / 2;             // 假设 n 是偶数
 
-    // 1) 扩展信号 ext
-    size_t ext_len = n + 2*pad;
-    std::vector<double> ext(ext_len);
     if (m_padding_mode == "periodic") {
-        // 周期延拓
-        for (int i = 0; i < pad; ++i) {
-            int idx = (i - pad) % int(n);
-            ext[i] = signal[(idx + n) % n];
+        // 周期 (periodization) 模式：直接循环卷积 + 下采样
+        std::vector<double> out(n);
+        for (size_t k = 0; k < half; ++k) {
+            double a = 0.0, d = 0.0;
+            for (int m = 0; m < L; ++m) {
+                // PyWavelets 对 periodic 模式下的 dwt 用的是 dec_lo[m] * x[(2k + (L-1) - m) mod n]
+                // 参考 pywt 源码 periodic 边界处理
+                size_t idx = (2*k + pad >= (size_t)m)
+                             ? (2*k + pad - m) % n
+                             : (n + (2*k + pad - m)%n) % n;
+                a += sym13::dec_lo[m] * signal[idx];
+                d += sym13::dec_hi[m] * signal[idx];
+            }
+            out[k]        = a;
+            out[half + k] = d;
         }
-        std::copy(signal, signal + n, ext.begin() + pad);
-        for (int i = 0; i < pad; ++i) {
-            ext[n + pad + i] = signal[i % n];
-        }
-    } else {
-        // 折返对称延拓
+        // 写回
+        std::copy(out.begin(), out.begin() + n, signal);
+    }
+    else {
+        // symmetric 模式：先对称填充 pad，然后 full 卷积 + offset=pad+1 下采样
+        size_t ext_len = n + 2*pad;
+        std::vector<double> ext(ext_len);
+        // 1) 对称延拓
         for (int i = 0; i < pad; ++i) {
             ext[i] = signal[ reflect_index(pad - 1 - i, n) ];
         }
@@ -975,76 +989,66 @@ void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
         for (int i = 0; i < pad; ++i) {
             ext[n + pad + i] = signal[ reflect_index(n + i, n) ];
         }
-    }
-
-    // 2) full 卷积 y_lo/ y_hi, 长度 = ext_len + L - 1
-    size_t ylen = ext_len + L - 1;
-    std::vector<double> y_lo(ylen, 0.0), y_hi(ylen, 0.0);
-    for (size_t i = 0; i < ylen; ++i) {
-        double s_lo = 0.0, s_hi = 0.0;
-        // y[i] = sum_{k=0..L-1} ext[i-k] * filt[k]  （自然的 full 卷积）
-        for (int k = 0; k < L; ++k) {
-            if (i >= (size_t)k) {
-                size_t j = i - k;
-                if (j < ext_len) {
-                    s_lo += sym13::dec_lo[k] * ext[j];
-                    s_hi += sym13::dec_hi[k] * ext[j];
+        // 2) full 卷积
+        size_t ylen = ext_len + L - 1;
+        std::vector<double> y_lo(ylen, 0.0), y_hi(ylen, 0.0);
+        for (size_t i = 0; i < ylen; ++i) {
+            double s_lo = 0.0, s_hi = 0.0;
+            for (int m = 0; m < L; ++m) {
+                if (i >= (size_t)m && (i - m) < ext_len) {
+                    double v = ext[i - m];
+                    s_lo += dec_lo[m] * v;
+                    s_hi += dec_hi[m] * v;
                 }
             }
+            y_lo[i] = s_lo;
+            y_hi[i] = s_hi;
         }
-        y_lo[i] = s_lo;
-        y_hi[i] = s_hi;
+        // 3) 从 y_lo,y_hi 中做 offset=pad+1 下采样，每隔 2 取一个，共 half 个
+        std::vector<double> out(n);
+        size_t offset = pad + 1;
+        for (size_t k = 0; k < half; ++k) {
+            out[k]        = y_lo[offset + 2*k];
+            out[half + k] = y_hi[offset + 2*k];
+        }
+        // 4) 写回
+        std::copy(out.begin(), out.begin() + n, signal);
     }
-
-    // 3) 下采样并输出：offset = L，步长 = 2
-    //    对称和周期模式下 na = (n + L - 1) / 2
-    size_t na = (n + L - 1) / 2;
-    size_t nd = n / 2;
-    std::vector<double> out(n);
-    for (size_t i = 0; i < na; ++i) {
-        out[i] = y_lo[L + 2*i];
-    }
-    for (size_t i = 0; i < nd; ++i) {
-        out[na + i] = y_hi[L + 2*i];
-    }
-
-    // 4) 写回 signal
-    std::copy(out.begin(), out.end(), signal);
 }
 
-void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
+void CDF97::Sym13Synthesis(double* signal, size_t n) {
     const int L   = sym13::kernel_length;
     const int pad = L - 1;
+    size_t half = n / 2;  // 假设 n 是偶数
 
-    // 1) 从 signal 中分离 cA, cD
-    size_t na = (n + L - 1) / 2;
-    size_t nd = n / 2;
-    // 多相插值向量长度 = 2*na
-    size_t ph = 2 * na;
-    std::vector<double> uA(ph, 0.0), uD(ph, 0.0);
-    for (size_t i = 0; i < na; ++i) {
-        uA[2*i] = signal[i];
-        if (i < nd) uD[2*i] = signal[na + i];
-    }
-
-    // 2) pad 扩展 extA, extD
-    size_t ext_len = ph + 2*pad;
-    std::vector<double> extA(ext_len), extD(ext_len);
     if (m_padding_mode == "periodic") {
-        // 周期延拓
-        for (int i = 0; i < pad; ++i) {
-            int idx = (i - pad) % int(ph);
-            extA[i] = uA[(idx + ph) % ph];
-            extD[i] = uD[(idx + ph) % ph];
+        // 周期模式下直接多相合成
+        std::vector<double> out(n, 0.0);
+        for (size_t k = 0; k < half; ++k) {
+            double cA = signal[k];
+            double cD = signal[half + k];
+            for (int m = 0; m < L; ++m) {
+                // idx = (2*k + (L-1) - m) mod n
+                size_t idx = (2*k + pad >= (size_t)m)
+                             ? (2*k + pad - m) % n
+                             : (n + (2*k + pad - m)%n) % n;
+                out[idx] += sym13::rec_lo[m] * cA + sym13::rec_hi[m] * cD;
+            }
         }
-        std::copy(uA.begin(), uA.end(), extA.begin() + pad);
-        std::copy(uD.begin(), uD.end(), extD.begin() + pad);
-        for (int i = 0; i < pad; ++i) {
-            extA[ph + pad + i] = uA[i % ph];
-            extD[ph + pad + i] = uD[i % ph];
+        std::copy(out.begin(), out.begin() + n, signal);
+    }
+    else {
+        // symmetric 模式：多相插值 → 对称 pad → 卷积 → 中心截断
+        size_t ph = 2 * half;  // 插值后长度
+        // 1) 多相插值
+        std::vector<double> uA(ph, 0.0), uD(ph, 0.0);
+        for (size_t k = 0; k < half; ++k) {
+            uA[2*k] = signal[k];
+            uD[2*k] = signal[half + k];
         }
-    } else {
-        // 折返对称延拓
+        // 2) 对称 pad
+        size_t ext_len = ph + 2*pad;
+        std::vector<double> extA(ext_len), extD(ext_len);
         for (int i = 0; i < pad; ++i) {
             extA[i] = uA[ reflect_index(pad - 1 - i, ph) ];
             extD[i] = uD[ reflect_index(pad - 1 - i, ph) ];
@@ -1055,26 +1059,28 @@ void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
             extA[ph + pad + i] = uA[ reflect_index(ph + i, ph) ];
             extD[ph + pad + i] = uD[ reflect_index(ph + i, ph) ];
         }
-    }
-
-    // 3) valid 卷积：rec_lo, rec_hi 需要反序（reverse）使用
-    //    结果长度 = ext_len - L + 1
-    size_t out_len = ext_len - L + 1;
-    std::vector<double> rA(out_len, 0.0), rD(out_len, 0.0);
-    for (size_t i = 0; i < out_len; ++i) {
-        double sA = 0.0, sD = 0.0;
-        for (int k = 0; k < L; ++k) {
-            // rec_lo[::-1][k] 对应 rec_lo[L-1-k]
-            sA += sym13::rec_lo[L-1-k] * extA[i + k];
-            sD += sym13::rec_hi[L-1-k] * extD[i + k];
+        // 3) valid 卷积（rec_lo, rec_hi 需要反序）
+        size_t ylen = ext_len - L + 1;
+        std::vector<double> rA(ylen, 0.0), rD(ylen, 0.0);
+        for (size_t i = 0; i < ylen; ++i) {
+            double sA = 0.0, sD = 0.0;
+            for (int m = 0; m < L; ++m) {
+                double vA = extA[i + m];
+                double vD = extD[i + m];
+                // 使用 rec_lo[::-1][m] == rec_lo[L-1-m]
+                sA += sym13::rec_lo[L-1-m] * vA;
+                sD += sym13::rec_hi[L-1-m] * vD;
+            }
+            rA[i] = sA;
+            rD[i] = sD;
         }
-        rA[i] = sA;
-        rD[i] = sD;
-    }
-
-    // 4) 从索引 pad 开始，取 n 个样本，累加低/高频
-    size_t start = pad;
-    for (size_t i = 0; i < n; ++i) {
-        signal[i] = rA[start + i] + rD[start + i];
+        // 4) 从 pad 开始截取 n 个，并累加
+        std::vector<double> out(n);
+        for (size_t i = 0; i < n; ++i) {
+            out[i] = rA[pad + i] + rD[pad + i];
+        }
+        std::copy(out.begin(), out.begin() + n, signal);
     }
 }
+
+}  // namespace sperr

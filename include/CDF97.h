@@ -134,7 +134,7 @@ class CDF97 {
 
 
   std::string m_wavelet_type = "sym13"; //to test sym13
-  std::string m_padding_mode = "symmetric";
+  std::string m_padding_mode = "periodic";//"symmetric";
 
 
 

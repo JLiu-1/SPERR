@@ -943,14 +943,14 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
-ALWAYS_INLINE size_t reflect_index(size_t idx, size_t n) {
+static inline size_t reflect_index(size_t idx, size_t n) {
     size_t period = 2*n - 2;
     idx %= period;
     return (idx < n ? idx : period - idx);
 }
 
-void CDF97::Sym13Analysis(double* signal, size_t n) {
-    const int L   = kernel_length;
+void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
+    const int L   = sym13::kernel_length;
     const int pad = L - 1;
     std::vector<double> ext(n + 2*pad);
 
@@ -984,7 +984,7 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
         double a = 0;
         size_t start = 2*i;
         for (int k = 0; k < L; ++k)
-            a += dec_lo[k] * ext[start + k];
+            a += sym13::dec_lo[k] * ext[start + k];
         out[i] = a;
     }
     // 高频分量
@@ -992,15 +992,15 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
         double d = 0;
         size_t start = 2*i;
         for (int k = 0; k < L; ++k)
-            d += dec_hi[k] * ext[start + k];
+            d += sym13::dec_hi[k] * ext[start + k];
         out[nA + i] = d;
     }
 
     std::copy(out.begin(), out.end(), signal);
 }
 
-void CDF97::Sym13Synthesis(double* signal, size_t n) {
-    const int L    = kernel_length;
+void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
+    const int L    = sym13::kernel_length;
     const int gLen = 2*L;
     const int pad  = gLen - 1;
 
@@ -1009,7 +1009,7 @@ void CDF97::Sym13Synthesis(double* signal, size_t n) {
     if (g.empty()) {
         g.resize(gLen);
         for (int k = 0; k < gLen; ++k)
-            g[k] = (k & 1) == 0 ? rec_lo[k/2] : rec_hi[k/2];
+            g[k] = (k & 1) == 0 ? sym13::rec_lo[k/2] : sym13::rec_hi[k/2];
     }
 
     std::vector<double> ext(n + 2*pad);
@@ -1045,5 +1045,3 @@ void CDF97::Sym13Synthesis(double* signal, size_t n) {
     // 写回
     std::copy(tmp.begin(), tmp.end(), signal);
 }
-
-} // namespace sperr

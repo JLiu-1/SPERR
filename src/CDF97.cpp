@@ -943,7 +943,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
-void sperr::CDF97::QccWAVSym13Analysis(double* signal, size_t n) {
+void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
   //using namespace sym13;
   const int L   = int(sym13::kernel_length);
   const int pad = L - 1;
@@ -996,7 +996,7 @@ void sperr::CDF97::QccWAVSym13Analysis(double* signal, size_t n) {
 }
 
 
-void sperr::CDF97::QccWAVSym13Synthesis(double* signal) {
+void sperr::CDF97::Sym13Synthesis(double* signal) {
   //using namespace sym13;
   const int L    = int(sym13::kernel_length);
   const int gLen = 2 * L;          // 合成滤波器长度

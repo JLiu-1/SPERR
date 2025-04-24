@@ -943,12 +943,12 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
     signal[i] *= (-INV_EPSILON);
 }
 
-void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
+void CDF97::QccWAVSym13Analysis(double* signal, size_t n) {
   //using namespace sym13;
-  const int L   = int(sym13::kernel_length);   // 26
-  const int pad = L - 1;         // 25
+  const int L   = int(sym13::kernel_length);
+  const int pad = L - 1;
 
-  // 1) 延拓到 ext 长度 n + 2*pad
+  // 1) 边界延拓到 ext 长度 n + 2*pad
   std::vector<double> ext(n + 2*pad);
   if (m_padding_mode == "periodic") {
     // 周期延拓
@@ -963,37 +963,31 @@ void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
     }
   } else {
     // 对称延拓
-    for (int i = 0; i < pad; ++i) {
+    for (int i = 0; i < pad; ++i)
       ext[i] = signal[pad - 1 - i];
-    }
     std::copy(signal, signal + n, ext.begin() + pad);
-    for (int i = 0; i < pad; ++i) {
+    for (int i = 0; i < pad; ++i)
       ext[n + pad + i] = signal[n - 1 - i];
-    }
   }
 
-  // 2) 计算低频/高频输出长度
-  size_t nA = (n + 1) / 2;  // ceil(n/2)
-  size_t nD = n / 2;        // floor(n/2)
+  // 2) 低频/高频长度
+  size_t nA = (n + 1) / 2;
+  size_t nD = n / 2;
 
-  // 3) 卷积 + 下采样
+  // 3) 分别卷积 + 下采样
   std::vector<double> out(n);
-  // 低频部分
   for (size_t i = 0; i < nA; ++i) {
     double a = 0;
     size_t start = 2 * i;
-    for (int k = 0; k < L; ++k) {
+    for (int k = 0; k < L; ++k)
       a += sym13::dec_lo[k] * ext[start + k];
-    }
     out[i] = a;
   }
-  // 高频部分
   for (size_t i = 0; i < nD; ++i) {
     double d = 0;
     size_t start = 2 * i;
-    for (int k = 0; k < L; ++k) {
+    for (int k = 0; k < L; ++k)
       d += sym13::dec_hi[k] * ext[start + k];
-    }
     out[nA + i] = d;
   }
 
@@ -1001,64 +995,57 @@ void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
   std::copy(out.begin(), out.end(), signal);
 }
 
-void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
+
+void CDF97::QccWAVSym13Synthesis(double* signal) {
   //using namespace sym13;
-  const int L   = int(sym13::kernel_length);
-  const int pad = L - 1;
+  const int L    = int(sym13::kernel_length);
+  const int gLen = 2 * L;          // 合成滤波器长度
+  const int pad  = gLen - 1;
 
-  // 1) 从 signal[0..nA-1]、[nA..n-1] 拆出低频 cA 和 高频 cD
-  size_t nA = (n + 1) / 2;
-  // 注意 nD = n - nA
-  // 2) 上采样
-  std::vector<double> upA(2 * n, 0.0), upD(2 * n, 0.0);
-  for (size_t i = 0; i < nA; ++i) {
-    upA[2*i] = signal[i];
-  }
-  for (size_t i = 0; i < n - nA; ++i) {
-    upD[2*i] = signal[nA + i];
+  // 1) 构建一次性合成滤波器 g[k]：
+  //    g[2*m] = rec_lo[m],  g[2*m+1] = rec_hi[m]
+  static std::vector<double> g;
+  if (g.empty()) {
+    g.resize(gLen);
+    for (int k = 0; k < gLen; ++k) {
+      if ((k & 1) == 0) g[k] = sym13::rec_lo[k/2];
+      else              g[k] = sym13::rec_hi[k/2];
+    }
   }
 
-  // 3) 延拓到 buf 长度 2*n + 2*pad
-  std::vector<double> extA(2*n + 2*pad), extD(2*n + 2*pad);
+  // 2) 把 [cA, cD]（长度 nA + nD = n）polyphase-interleave 到 ext——
+  //    extbuf 长度 n + 2*pad，用来做一次长为 gLen 的卷积
+  std::vector<double> ext(n + 2*pad);
+  // 2.1 先把 signal[0..n-1] 拷到 ext[pad..pad+n-1]
   if (m_padding_mode == "periodic") {
     // 周期延拓
     for (int i = 0; i < pad; ++i) {
-      int idx = (i - pad) % int(2*n);
-      if (idx < 0) idx += int(2*n);
-      extA[i] = upA[idx];
-      extD[i] = upD[idx];
+      int idx = (i - pad) % int(n);
+      if (idx < 0) idx += int(n);
+      ext[i] = signal[idx];
     }
-    std::copy(upA.begin(), upA.end(), extA.begin() + pad);
-    std::copy(upD.begin(), upD.end(), extD.begin() + pad);
-    for (int i = 0; i < pad; ++i) {
-      extA[2*n + pad + i] = upA[i % (2*n)];
-      extD[2*n + pad + i] = upD[i % (2*n)];
-    }
+    std::copy(signal, signal + n, ext.begin() + pad);
+    for (int i = 0; i < pad; ++i)
+      ext[n + pad + i] = signal[i % n];
   } else {
     // 对称延拓
-    for (int i = 0; i < pad; ++i) {
-      extA[i] = upA[pad - 1 - i];
-      extD[i] = upD[pad - 1 - i];
-    }
-    std::copy(upA.begin(), upA.end(), extA.begin() + pad);
-    std::copy(upD.begin(), upD.end(), extD.begin() + pad);
-    for (int i = 0; i < pad; ++i) {
-      extA[2*n + pad + i] = upA[2*n - 1 - i];
-      extD[2*n + pad + i] = upD[2*n - 1 - i];
-    }
+    for (int i = 0; i < pad; ++i)
+      ext[i] = signal[pad - 1 - i];
+    std::copy(signal, signal + n, ext.begin() + pad);
+    for (int i = 0; i < pad; ++i)
+      ext[n + pad + i] = signal[n - 1 - i];
   }
 
-  // 4) 卷积 + 合并
-  std::vector<double> tmp(2 * n);
-  for (int i = 0; i < int(2 * n); ++i) {
-    double a = 0, d = 0;
-    for (int k = 0; k < L; ++k) {
-      a += sym13::rec_lo[k] * extA[i + k];
-      d += sym13::rec_hi[k] * extD[i + k];
+  // 3) 一次长卷积，结果长度仍是 n
+  std::vector<double> tmp(n);
+  for (size_t i = 0; i < n; ++i) {
+    double v = 0;
+    for (int k = 0; k < gLen; ++k) {
+      v += g[k] * ext[i + k];
     }
-    tmp[i] = a + d;
+    tmp[i] = v;
   }
 
-  // 5) 写回（注意调用者必须保证 signal[] 空间至少能写入 2*n 个元素）
+  // 4) 写回（in-place）
   std::copy(tmp.begin(), tmp.end(), signal);
 }

@@ -949,8 +949,8 @@ static inline size_t reflect_index(size_t idx, size_t n) {
     return (idx < n ? idx : period - idx);
 }
 
-void CDF97::Sym13Analysis(double* signal, size_t n) {
-    const int L   = kernel_length;
+void sperr::CDF97::Sym13Analysis(double* signal, size_t n) {
+    const int L   = sym13::kernel_length;
     const int pad = L - 1;
     // 1) 构造扩展后的信号 ext
     size_t ext_len = n + 2*pad;
@@ -990,8 +990,8 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
         for (int k = 0; k < L; ++k) {
             size_t j = i >= (size_t)k ? i - k : ext_len;  // j<ext_len 保证
             if (j < ext_len) {
-                s_lo += dec_lo[k] * ext[j];
-                s_hi += dec_hi[k] * ext[j];
+                s_lo += sym13::dec_lo[k] * ext[j];
+                s_hi += sym13::dec_hi[k] * ext[j];
             }
         }
         y_lo[i] = s_lo;
@@ -1011,8 +1011,8 @@ void CDF97::Sym13Analysis(double* signal, size_t n) {
     std::copy(out.begin(), out.end(), signal);
 }
 
-void CDF97::Sym13Synthesis(double* signal, size_t n) {
-    const int L    = kernel_length;
+void sperr::CDF97::Sym13Synthesis(double* signal, size_t n) {
+    const int L    = sym13::kernel_length;
     const int pad  = L - 1;
     // 重构滤波器拼接长度
     const int gLen = 2*L;
@@ -1022,8 +1022,8 @@ void CDF97::Sym13Synthesis(double* signal, size_t n) {
     if (g.empty()) {
         g.resize(gLen);
         for (int k = 0; k < gLen; ++k) {
-            if ((k & 1) == 0)       g[k] = rec_lo[k/2];
-            else                    g[k] = rec_hi[k/2];
+            if ((k & 1) == 0)       g[k] = sym13::rec_lo[k/2];
+            else                    g[k] = sym13::rec_hi[k/2];
         }
     }
 

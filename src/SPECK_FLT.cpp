@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 #include <numeric>
-
+#include <iostream>
 template <typename T>
 void sperr::SPECK_FLT::copy_data(const T* p, size_t len)
 {

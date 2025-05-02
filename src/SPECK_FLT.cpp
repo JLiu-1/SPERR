@@ -431,10 +431,14 @@ auto sperr::SPECK_FLT::compress() -> RTNType
     default:;  // So the compiler doesn't complain about missing switch cases.
   }
 
+  sperr::write_n_bytes("sperr.aftercond", m_vals_d.size() * sizeof(double), m_vals_d.data());
+
   // Step 2: wavelet transform
   m_cdf.take_data(std::move(m_vals_d), m_dims);
   m_wavelet_xform();
   m_vals_d = m_cdf.release_data();
+
+  sperr::write_n_bytes("sperr.afterdwt", m_vals_d.size() * sizeof(double), m_vals_d.data());
 
   // Step 2.1: Estimate `m_q`, and store it as part of `m_condi_stream`.
   if (m_mode == CompMode::Rate) {

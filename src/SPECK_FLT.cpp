@@ -435,6 +435,8 @@ auto sperr::SPECK_FLT::compress() -> RTNType
 
   // Step 2: wavelet transform
   m_cdf.take_data(std::move(m_vals_d), m_dims);
+  std::cout<<m_dims[0]<<" "<<m_dims[1]<<" "<<m_dims[2]<<std::endl;
+
   m_wavelet_xform();
   m_vals_d = m_cdf.release_data();
 

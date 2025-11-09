@@ -51,6 +51,7 @@ class SPECK_FLT {
   void set_psnr(double psnr);
   void set_tolerance(double tol);
   void set_bitrate(double bpp);
+  void set_q_coeff(double qc);
   void set_dims(dims_type);
   auto integer_len() const -> size_t;
 
@@ -70,6 +71,7 @@ class SPECK_FLT {
   CompMode m_mode = CompMode::Unknown;  // encoding only
   double m_q = 0.0;                     // encoding and decoding
   double m_quality = 0.0;               // encoding only, represent either PSNR, PWE, or BPP.
+  double m_q_coeff = 1.5;
   vecd_type m_vals_orig;                // encoding only (PWE mode)
   dims_type m_dims = {0, 0, 0};
   vecd_type m_vals_d;

@@ -49,6 +49,13 @@ void sperr::SPERR3D_OMP_C::set_bitrate(double bpp)
   m_quality = bpp;
 }
 
+void sperr::SPERR3D_OMP_C::set_q_coeff(double qc)
+{
+  assert(qc > 0.0);
+  m_q_coeff = qc;
+}
+
+
 #ifdef EXPERIMENTING
 void sperr::SPERR3D_OMP_C::set_direct_q(double q)
 {
@@ -110,6 +117,7 @@ auto sperr::SPERR3D_OMP_C::compress(const T* buf, size_t buf_len) -> RTNType
         break;
       case CompMode::PWE:
         compressor->set_tolerance(m_quality);
+        compressor->set_q_coeff(m_q_coeff);
         break;
       case CompMode::Rate:
         compressor->set_bitrate(m_quality);

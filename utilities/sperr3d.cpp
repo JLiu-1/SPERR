@@ -180,6 +180,12 @@ int main(int argc, char* argv[])
   auto pwe = 0.0;
   auto* pwe_ptr = app.add_option("--pwe", pwe, "Maximum point-wise error (PWE) tolerance.")
                       ->group("Compression settings");
+
+  auto q = 1.5;
+  auto* q_ptr = app.add_option("--q", q, "q.")
+                      ->group("Compression settings");
+
+
   auto vre = 0.0;
   auto* vre_ptr = app.add_option("--vre", vre, "Maximum value-range-based relative error (VRE) tolerance.")
                       ->excludes(pwe_ptr)
@@ -316,8 +322,10 @@ int main(int argc, char* argv[])
       }
 
     }
-    if (pwe != 0.0)
+    if (pwe != 0.0){
       encoder->set_tolerance(pwe);
+      encoder->set_q_coeff(q);
+    }
     else if (psnr != 0.0)
       encoder->set_psnr(psnr);
 #ifdef EXPERIMENTING

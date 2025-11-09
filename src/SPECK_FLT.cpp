@@ -173,6 +173,12 @@ void sperr::SPECK_FLT::set_bitrate(double bpp)
   m_has_outlier = false;
 }
 
+void sperr::SPECK_FLT::set_q_coeff(double qc)
+{
+  assert(qc > 0.0);
+  m_q_coeff = qc;
+}
+
 #ifdef EXPERIMENTING
 void sperr::SPECK_FLT::set_direct_q(double q)
 {
@@ -277,7 +283,7 @@ auto sperr::SPECK_FLT::m_estimate_q(double param, bool high_prec) const -> doubl
       return q;
     }
     case CompMode::PWE:
-      return m_quality * 1.5;
+      return m_quality * m_q_coeff;
     case CompMode::Rate:
       // This should be the most frequent case, where a `q` is calculated to results in making
       //    full use of the biggest integer represented by uint32_t (4294967295, or ~4e9).

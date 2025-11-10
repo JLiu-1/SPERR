@@ -30,7 +30,7 @@ class CDF97_F {
   // Output
   //
   auto view_data() const -> const vecf_type&;
-  auto release_data() -> vecd_type&&;
+  auto release_data() -> vecd_type;
   auto get_dims() const -> std::array<size_t, 3>;  // In 2D case, the 3rd value equals 1.
 
   //

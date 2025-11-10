@@ -356,12 +356,14 @@ void sperr::CDF97::m_dwt3d_dyadic(size_t num_xforms)
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
 
     // XY planes
+    std::cout<<"xy"<<std::endl;
     for (size_t iz = 0; iz < z; iz++) {
       auto offset = iz * plane_size_xy;
       m_dwt2d_one_level(m_data_buf.begin() + offset, {x, y});
     }
 
     // XZ planes
+     std::cout<<"xz"<<std::endl;
     for (size_t iy = 0; iy < y; iy++) {
       auto offset = iy * m_dims[0];
       auto slice = m_slice_buf.begin();
@@ -380,6 +382,7 @@ void sperr::CDF97::m_dwt3d_dyadic(size_t num_xforms)
     }
 
     // YZ planes
+     std::cout<<"yz"<<std::endl;
     for (size_t ix = 0; ix < x; ix++) {
       auto slice = m_slice_buf.begin();
       for (size_t iz = 0; iz < z; iz++) {

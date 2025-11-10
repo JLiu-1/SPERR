@@ -115,6 +115,7 @@ auto sperr::CDF97::idwt2d_multi_res() -> std::vector<vecd_type>
 void sperr::CDF97::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
+  std::cout<<dyadic<<std::endl;
   if (dyadic)
     m_dwt3d_dyadic(*dyadic);
   else

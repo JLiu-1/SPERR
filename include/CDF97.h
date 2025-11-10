@@ -91,7 +91,7 @@ class CDF97 {
 
 
   void m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
-  void m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride)
+  void m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
 
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.

@@ -501,8 +501,8 @@ FIXED_RATE_HIGH_PREC_LABEL:
     case UINTType::UINT8:
       assert(m_vals_ui.index() == 0);
       assert(m_encoder.index() == 0);
-      std::vector<uint8_t> codes = std::get<0>(m_vals_ui);
-      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint8_t), codes.data());
+      std::vector<uint8_t> codes8 = std::get<0>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes8.size() * sizeof(uint8_t), codes8.data());
       std::cout<<"uint8 dumped."<<std::endl;
 
       rtn = std::get<0>(m_encoder)->use_coeffs(std::move(std::get<0>(m_vals_ui)),
@@ -512,8 +512,8 @@ FIXED_RATE_HIGH_PREC_LABEL:
     case UINTType::UINT16:
       assert(m_vals_ui.index() == 1);
       assert(m_encoder.index() == 1);
-      std::vector<uint16_t> codes = std::get<1>(m_vals_ui);
-      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint16_t), codes.data());
+      std::vector<uint16_t> codes16 = std::get<1>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes16.size() * sizeof(uint16_t), codes16.data());
       std::cout<<"uint16 dumped."<<std::endl;
 
       rtn = std::get<1>(m_encoder)->use_coeffs(std::move(std::get<1>(m_vals_ui)),
@@ -522,8 +522,8 @@ FIXED_RATE_HIGH_PREC_LABEL:
     case UINTType::UINT32:
       assert(m_vals_ui.index() == 2);
       assert(m_encoder.index() == 2);
-      std::vector<uint32_t> codes = std::get<2>(m_vals_ui);
-      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint32_t), codes.data());
+      std::vector<uint32_t> codes32 = std::get<2>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes32.size() * sizeof(uint32_t), codes32.data());
       std::cout<<"uint32 dumped."<<std::endl;
 
       rtn = std::get<2>(m_encoder)->use_coeffs(std::move(std::get<2>(m_vals_ui)),
@@ -532,8 +532,8 @@ FIXED_RATE_HIGH_PREC_LABEL:
     default:
       assert(m_vals_ui.index() == 3);
       assert(m_encoder.index() == 3);
-      std::vector<uint64_t> codes = std::get<3>(m_vals_ui);
-      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint64_t), codes.data());
+      std::vector<uint64_t> codes64 = std::get<3>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes64.size() * sizeof(uint64_t), codes64.data());
       std::cout<<"uint64 dumped."<<std::endl;
 
       rtn = std::get<3>(m_encoder)->use_coeffs(std::move(std::get<3>(m_vals_ui)),

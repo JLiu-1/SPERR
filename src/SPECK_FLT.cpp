@@ -441,7 +441,10 @@ auto sperr::SPECK_FLT::compress() -> RTNType
 
   // Step 2: wavelet transform
   m_cdf.take_data(std::move(m_vals_d), m_dims);
+  Timer timer(true);
   m_wavelet_xform();
+  timer.stop("DWT");
+  
   m_vals_d = m_cdf.release_data();
 
   // Step 2.1: Estimate `m_q`, and store it as part of `m_condi_stream`.
@@ -470,7 +473,10 @@ FIXED_RATE_HIGH_PREC_LABEL:
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;
+    Timer timer(true);
     m_inverse_wavelet_xform(false);  // No multi-resolution needed!
+    timer.stop("IDWT");
+    
     m_vals_d = m_cdf.release_data();
     auto LOS = std::vector<Outlier>();
     LOS.reserve(0.04 * total_vals);  // Reserve space to hold about 4% of total values.

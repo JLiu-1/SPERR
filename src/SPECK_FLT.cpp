@@ -489,7 +489,7 @@ FIXED_RATE_HIGH_PREC_LABEL:
         return rtn;
     }
   }
-  sperr::write_n_bytes("sperr_quant_codes.test", m_vals_ui.size() * sizeof(int), m_vals_ui.data());
+  
   // Step 4: Integer SPECK encoding
   m_instantiate_encoder();
   if (m_mode == CompMode::Rate) {
@@ -501,8 +501,13 @@ FIXED_RATE_HIGH_PREC_LABEL:
     case UINTType::UINT8:
       assert(m_vals_ui.index() == 0);
       assert(m_encoder.index() == 0);
+      auto codes = std::get<0>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint8_t), codes.data());
+      std::cout<<"uint8 dumped."<<std::endl;
+
       rtn = std::get<0>(m_encoder)->use_coeffs(std::move(std::get<0>(m_vals_ui)),
                                                std::move(m_sign_array));
+      
       break;
     case UINTType::UINT16:
       assert(m_vals_ui.index() == 1);

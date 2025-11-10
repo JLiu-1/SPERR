@@ -8,6 +8,8 @@
 #include <cstring>
 #include <numeric>
 #include <iostream>
+
+#include "Timer.h"
 template <typename T>
 void sperr::SPECK_FLT::copy_data(const T* p, size_t len)
 {
@@ -545,8 +547,9 @@ FIXED_RATE_HIGH_PREC_LABEL:
   }
   if (rtn != RTNType::Good)
     return rtn;
-
+  Timer timer(true);
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
+  timer.stop("SPECK encoding");
   size_t speck_encoded_bits;
   if (m_encoder.index() == 0)
     speck_encoded_bits = std::get<0>(m_encoder)->encoded_bitstream_len() * size_t{8};

@@ -117,10 +117,10 @@ class CDF97_F {
   //
   // Methods from QccPack, so keep their original names, interface, and the use of raw pointers.
   //
-  void QccWAVCDF97AnalysisSymmetricEvenEven(float* signal, size_t signal_length);
-  void QccWAVCDF97AnalysisSymmetricOddEven(float* signal, size_t signal_length);
-  void QccWAVCDF97SynthesisSymmetricEvenEven(float* signal, size_t signal_length);
-  void QccWAVCDF97SynthesisSymmetricOddEven(float* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetricEvenEven(double* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
 
   //
   // Private data members
@@ -132,7 +132,7 @@ class CDF97_F {
   // slice. Note: `m_qcc_buf` should be used by m_***_one_level() functions and
   // should not be used by higher-level functions. `m_slice_buf` is only used by
   // wavelet-packet transforms.
-  vecf_type m_qcc_buf;
+  vecd_type m_qcc_buf;
   vecf_type m_slice_buf;
 
   //

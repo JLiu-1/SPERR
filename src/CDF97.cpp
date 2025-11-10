@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include <iostream>
 template <typename T>
 auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNType
 {
@@ -109,8 +109,10 @@ auto sperr::CDF97::idwt2d_multi_res() -> std::vector<vecd_type>
 void sperr::CDF97::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
-  if (dyadic)
+  if (dyadic){
+    std::cout<<dyadic<<std::endl;
     m_dwt3d_dyadic(*dyadic);
+  }
   else
     m_dwt3d_wavelet_packet();
 }

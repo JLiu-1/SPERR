@@ -19,11 +19,11 @@ auto sperr::num_of_xforms(size_t len) -> size_t
   // six (6) is the maxinum number of transforms to do.
   //
   size_t num = 0;
-  while (len >= 17) {
+  while (len >= 9) {
     ++num;
     len -= len / 2;
   }
-  return std::min(num, size_t{3});
+  return std::min(num, size_t{6});
 }
 
 auto sperr::can_use_dyadic(dims_type dims) -> std::optional<size_t>
@@ -39,7 +39,7 @@ auto sperr::can_use_dyadic(dims_type dims) -> std::optional<size_t>
   //       dyanic scheme and do 5 levels on all of them. I.e., the benefit of dyadic
   //       transforms exceeds one extra level of transform.
   //
-  if ((xy == z) || (xy >= 3 && z >= 3))
+  if ((xy == z) || (xy >= 5 && z >= 5))
     return std::min(xy, z);
   else
     return {};

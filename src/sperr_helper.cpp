@@ -23,7 +23,7 @@ auto sperr::num_of_xforms(size_t len) -> size_t
     ++num;
     len -= len / 2;
   }
-  return std::min(num, size_t{4});
+  return std::min(num, size_t{3});
 }
 
 auto sperr::can_use_dyadic(dims_type dims) -> std::optional<size_t>

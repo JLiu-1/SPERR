@@ -661,7 +661,7 @@ void sperr::CDF97_F::m_sub_volume(dims_type subdims, itf_type dst) const
 //
 // Methods from QccPack
 //
-void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricEvenEven(float * signal, size_t signal_length)
+void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricEvenEven(double * signal, size_t signal_length)
 {
   for (size_t i = 1; i < signal_length - 2; i += 2)
     signal[i] += ALPHA * (signal[i - 1] + signal[i + 1]);
@@ -687,7 +687,7 @@ void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricEvenEven(float * signal, size_t
     signal[i] *= -INV_EPSILON;
 }
 
-void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricEvenEven(float * signal, size_t signal_length)
+void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricEvenEven(double * signal, size_t signal_length)
 {
   for (size_t i = 1; i < signal_length; i += 2)
     signal[i] *= (-EPSILON);
@@ -713,7 +713,7 @@ void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricEvenEven(float * signal, size_
   signal[signal_length - 1] -= 2.0 * ALPHA * signal[signal_length - 2];
 }
 
-void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricOddEven(float * signal, size_t signal_length)
+void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricOddEven(double * signal, size_t signal_length)
 {
   for (size_t i = 1; i < signal_length - 1; i += 2)
     signal[i] *= (-EPSILON);
@@ -740,7 +740,7 @@ void sperr::CDF97_F::QccWAVCDF97SynthesisSymmetricOddEven(float * signal, size_t
     signal[i] -= ALPHA * (signal[i - 1] + signal[i + 1]);
 }
 
-void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricOddEven(float * signal, size_t signal_length)
+void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricOddEven(double * signal, size_t signal_length)
 {
   for (size_t i = 1; i < signal_length - 1; i += 2)
     signal[i] += ALPHA * (signal[i - 1] + signal[i + 1]);

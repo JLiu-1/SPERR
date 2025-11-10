@@ -89,6 +89,10 @@ class CDF97 {
   void m_dwt1d_one_level(itd_type array, size_t array_len);
   void m_idwt1d_one_level(itd_type array, size_t array_len);
 
+
+  void m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
+  void m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride)
+
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
   // Note 2: two versions for even and odd length input.
@@ -121,6 +125,11 @@ class CDF97 {
   void QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
+
+  void QccWAVCDF97AnalysisSymmetricEvenEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97AnalysisSymmetricOddEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97SynthesisSymmetricEvenEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97SynthesisSymmetricOddEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
 
   //
   // Private data members

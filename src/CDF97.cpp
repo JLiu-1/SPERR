@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-#include <iostream>
+//#include <iostream>
 template <typename T>
 auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNType
 {
@@ -110,7 +110,7 @@ void sperr::CDF97::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
   if (dyadic){
-    std::cout<<*dyadic<<std::endl;
+    //std::cout<<*dyadic<<std::endl;
     m_dwt3d_dyadic(*dyadic);
   }
   else
@@ -273,14 +273,14 @@ void sperr::CDF97::m_dwt3d_dyadic(size_t num_xforms)
 void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
 {
   for (size_t lev = num_xforms; lev > 0; lev--) {
-    Timer  timer(true);
+    //Timer  timer(true);
     
   
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev - 1);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev - 1);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
     m_idwt3d_one_level(m_data_buf.begin(), {x, y, z});
-     timer.stop("Cur level");
+    // timer.stop("Cur level");
   
   }
 }
@@ -459,10 +459,12 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
 {
   // First, do one level of transform on all XY planes.
   const auto plane_size_xy = m_dims[0] * m_dims[1];
+  Timer timer(true);
   for (size_t z = 0; z < len_xyz[2]; z++) {
     const size_t offset = plane_size_xy * z;
     m_dwt2d_one_level(vol + offset, {len_xyz[0], len_xyz[1]});
   }
+  timer.stop("XY one level")
 
   const auto beg = m_qcc_buf.begin();  // First half of the buffer
   const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
@@ -472,7 +474,7 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-
+  timer.start();
   if (len_xyz[2] % 2 == 0) {  // Even length
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {
@@ -507,6 +509,7 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
       }
     }
   }
+  timer.stop("Z one level")
 }
 
 void sperr::CDF97::m_idwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz)

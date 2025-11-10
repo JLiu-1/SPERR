@@ -110,7 +110,7 @@ void sperr::CDF97::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
   if (dyadic){
-    std::cout<<dyadic<<std::endl;
+    std::cout<<*dyadic<<std::endl;
     m_dwt3d_dyadic(*dyadic);
   }
   else

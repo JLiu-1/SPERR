@@ -75,6 +75,7 @@ class SPECK_FLT {
   vecd_type m_vals_orig;                // encoding only (PWE mode)
   dims_type m_dims = {0, 0, 0};
   vecd_type m_vals_d;
+  vecf_type m_vals_f;//new
   condi_type m_condi_bitstream;
   Bitmask m_sign_array;
   std::vector<vecd_type> m_hierarchy;  // multi-resolution decoding

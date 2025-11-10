@@ -1,10 +1,10 @@
 #include "CDF53.h"
-#include "Timer.h"
+//#include "Timer.h"
 #include <algorithm>
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-#include <iostream>
+//#include <iostream>
 template <typename T>
 auto sperr::CDF53::copy_data(const T* data, size_t len, dims_type dims) -> RTNType
 {
@@ -110,7 +110,7 @@ void sperr::CDF53::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
   if (dyadic){
-    std::cout<<*dyadic<<std::endl;
+    //std::cout<<*dyadic<<std::endl;
     m_dwt3d_dyadic(*dyadic);
   }
   else
@@ -273,14 +273,14 @@ void sperr::CDF53::m_dwt3d_dyadic(size_t num_xforms)
 void sperr::CDF53::m_idwt3d_dyadic(size_t num_xforms)
 {
   for (size_t lev = num_xforms; lev > 0; lev--) {
-    Timer  timer(true);
+    //Timer  timer(true);
     
   
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev - 1);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev - 1);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
     m_idwt3d_one_level(m_data_buf.begin(), {x, y, z});
-     timer.stop("Cur level");
+     //timer.stop("Cur level");
   
   }
 }

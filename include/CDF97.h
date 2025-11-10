@@ -90,8 +90,8 @@ class CDF97 {
   void m_idwt1d_one_level(itd_type array, size_t array_len);
 
 
-  void m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
-  void m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
+  //void m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
+  //void m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_t stride);
 
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
@@ -116,9 +116,9 @@ class CDF97 {
   // It is UB if `subdims` exceeds the full dimension (`m_dims`).
   // It is UB if `dst` does not point to a big enough space.
   auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecd_type;
-  void m_sub_slice(std::array<size_t, 2> subdims, itd_type dest) const;
+  //void m_sub_slice(std::array<size_t, 2> subdims, itd_type dest) const;
   void m_sub_volume(dims_type subdims, itd_type dst) const;
-  auto m_sub_volume(dims_type subdims) const -> vecd_type;
+  //auto m_sub_volume(dims_type subdims) const -> vecd_type;
 
   //
   // Methods from QccPack, so keep their original names, interface, and the use of raw pointers.
@@ -128,10 +128,10 @@ class CDF97 {
   void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
 
-  void QccWAVCDF97AnalysisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97AnalysisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97SynthesisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97SynthesisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  //void QccWAVCDF97AnalysisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  //void QccWAVCDF97AnalysisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  //void QccWAVCDF97SynthesisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  //void QccWAVCDF97SynthesisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
 
   //
   // Private data members

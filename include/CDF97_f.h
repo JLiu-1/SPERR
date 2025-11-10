@@ -111,7 +111,7 @@ class CDF97_F {
   // Extract a sub-slice/sub-volume starting with the same origin of the full slice/volume.
   // It is UB if `subdims` exceeds the full dimension (`m_dims`).
   // It is UB if `dst` does not point to a big enough space.
-  auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecd_type;
+  auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecf_type;
   void m_sub_volume(dims_type subdims, itf_type dst) const;
 
   //

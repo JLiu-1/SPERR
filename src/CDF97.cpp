@@ -279,7 +279,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base->data(), len, stride);
+    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base, len, stride);
   }
   else {
     // odd-even
@@ -288,7 +288,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base->data(), len, stride);
+    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base, len, stride);
   }
 }
 
@@ -808,7 +808,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t si
 // ===== New stride-aware lifting kernels =====
 
 void sperr::CDF97::QccWAVCDF97AnalysisSymmetricEvenEvenStrided(
-    double* base, size_t n, ptrdiff_t s)
+    itd_type base, size_t n, ptrdiff_t s)
 {
   for (size_t i = 1; i < n - 2; i += 2)
     base[i * s] += ALPHA * (base[(i - 1) * s] + base[(i + 1) * s]);
@@ -836,7 +836,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricEvenEvenStrided(
 }
 
 void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEvenStrided(
-    double* base, size_t n, ptrdiff_t s)
+    itd_type base, size_t n, ptrdiff_t s)
 {
   for (size_t i = 1; i < n - 1; i += 2)
     base[i * s] += ALPHA * (base[(i - 1) * s] + base[(i + 1) * s]);
@@ -865,7 +865,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricOddEvenStrided(
 }
 
 void sperr::CDF97::QccWAVCDF97SynthesisSymmetricEvenEvenStrided(
-    double* base, size_t n, ptrdiff_t s)
+    itd_type base, size_t n, ptrdiff_t s)
 {
   for (size_t i = 1; i < n; i += 2)
     base[i * s] *= -EPSILON;
@@ -893,7 +893,7 @@ void sperr::CDF97::QccWAVCDF97SynthesisSymmetricEvenEvenStrided(
 }
 
 void sperr::CDF97::QccWAVCDF97SynthesisSymmetricOddEvenStrided(
-    double* base, size_t n, ptrdiff_t s)
+    itd_type base, size_t n, ptrdiff_t s)
 {
   for (size_t i = 1; i < n - 1; i += 2)
     base[i * s] *= -EPSILON;

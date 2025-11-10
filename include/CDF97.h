@@ -126,10 +126,10 @@ class CDF97 {
   void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
 
-  void QccWAVCDF97AnalysisSymmetricEvenEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97AnalysisSymmetricOddEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97SynthesisSymmetricEvenEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
-  void QccWAVCDF97SynthesisSymmetricOddEvenStrided(double* signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97AnalysisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97AnalysisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97SynthesisSymmetricEvenEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
+  void QccWAVCDF97SynthesisSymmetricOddEvenStrided(itd_type signal, size_t signal_length, ptrdiff_t s);
 
   //
   // Private data members

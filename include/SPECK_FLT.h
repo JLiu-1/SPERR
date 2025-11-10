@@ -6,7 +6,7 @@
 //
 
 #include "CDF97.h"
-#include "CDF97_f.h"
+//#include "CDF97_f.h"
 #include "Conditioner.h"
 #include "Outlier_Coder.h"
 #include "SPECK_INT.h"

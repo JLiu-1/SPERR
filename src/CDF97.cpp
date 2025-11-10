@@ -454,7 +454,7 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
   const ptrdiff_t stride_z = static_cast<ptrdiff_t>(plane_size_xy);
   for (size_t y = 0; y < len_xyz[1]; ++y) {
     for (size_t x = 0; x < len_xyz[0]; ++x) {
-      double* col0 = vol + y * m_dims[0] + x;  // (x,y,0)
+      auto col0 = vol + y * m_dims[0] + x;  // (x,y,0)
       m_dwt1d_one_level_strided(col0, len_xyz[2], stride_z);
     }
   }
@@ -571,7 +571,7 @@ void sperr::CDF97::m_idwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xy
   const ptrdiff_t stride_z = static_cast<ptrdiff_t>(plane_size_xy);
   for (size_t y = 0; y < len_xyz[1]; ++y) {
     for (size_t x = 0; x < len_xyz[0]; ++x) {
-      double* col0 = vol + y * m_dims[0] + x;  // (x,y,0)
+      auto col0 = vol + y * m_dims[0] + x;  // (x,y,0)
       m_idwt1d_one_level_strided(col0, len_xyz[2], stride_z);
     }
   }

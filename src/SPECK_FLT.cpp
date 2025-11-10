@@ -440,9 +440,9 @@ auto sperr::SPECK_FLT::compress() -> RTNType
   }
 
   // Step 2: wavelet transform
-  m_cdf.take_data(std::move(m_vals_d), m_dims);
+  m_cdf_f.take_data(std::move(m_vals_d), m_dims);
   m_wavelet_xform();
-  m_vals_d = m_cdf.release_data();
+  m_vals_d = m_cdf_f.release_data();
 
   // Step 2.1: Estimate `m_q`, and store it as part of `m_condi_stream`.
   if (m_mode == CompMode::Rate) {
@@ -467,11 +467,11 @@ FIXED_RATE_HIGH_PREC_LABEL:
   // CompMode::PWE only: perform outlier coding: find out all the outliers, and encode them!
   if (m_mode == CompMode::PWE) {
     m_midtread_inv_quantize();
-    rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
+    rtn = m_cdf_f.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;
     m_inverse_wavelet_xform(false);  // No multi-resolution needed!
-    m_vals_d = m_cdf.release_data();
+    m_vals_d = m_cdf_f.release_data();
     auto LOS = std::vector<Outlier>();
     LOS.reserve(0.04 * total_vals);  // Reserve space to hold about 4% of total values.
     for (size_t i = 0; i < total_vals; i++) {
@@ -606,11 +606,11 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   m_midtread_inv_quantize();
 
   // Step 3: Inverse wavelet transform
-  auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
+  auto rtn = m_cdf_f.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)
     return rtn;
   m_inverse_wavelet_xform(multi_res);
-  m_vals_d = m_cdf.release_data();
+  m_vals_d = m_cdf_f.release_data();
 
   // Side step: outlier correction, if needed
   if (m_has_outlier) {

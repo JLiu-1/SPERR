@@ -708,7 +708,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricEvenEven(double* signal, size_t s
   for (size_t i = 2; i < signal_length; i += 2)
     signal[i] += BETA * (signal[i + 1] + signal[i - 1]);
 
-  for (size_t i = 1; i < signal_length - 2; i += 2)E
+  for (size_t i = 1; i < signal_length - 2; i += 2)
     signal[i] += GAMMA * (signal[i - 1] + signal[i + 1]);
 
   signal[signal_length - 1] += 2.0 * GAMMA * signal[signal_length - 2];

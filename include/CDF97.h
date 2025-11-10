@@ -116,7 +116,9 @@ class CDF97 {
   // It is UB if `subdims` exceeds the full dimension (`m_dims`).
   // It is UB if `dst` does not point to a big enough space.
   auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecd_type;
+  void m_sub_slice(std::array<size_t, 2> subdims, itd_type dest) const;
   void m_sub_volume(dims_type subdims, itd_type dst) const;
+  auto m_sub_volume(dims_type subdims) const -> vecd_type;
 
   //
   // Methods from QccPack, so keep their original names, interface, and the use of raw pointers.

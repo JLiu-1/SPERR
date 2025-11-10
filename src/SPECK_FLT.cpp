@@ -606,11 +606,11 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   m_midtread_inv_quantize();
 
   // Step 3: Inverse wavelet transform
-  auto rtn = m_cdf_f.take_data(std::move(m_vals_d), m_dims);
+  auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)
     return rtn;
   m_inverse_wavelet_xform(multi_res);
-  m_vals_d = m_cdf_f.release_data();
+  m_vals_d = m_cdf.release_data();
 
   // Side step: outlier correction, if needed
   if (m_has_outlier) {

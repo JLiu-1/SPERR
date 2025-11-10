@@ -1,5 +1,5 @@
 #include "CDF97.h"
-
+#include "Timer.h"
 #include <algorithm>
 #include <cassert>
 #include <numeric>  // std::accumulate()
@@ -273,10 +273,15 @@ void sperr::CDF97::m_dwt3d_dyadic(size_t num_xforms)
 void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
 {
   for (size_t lev = num_xforms; lev > 0; lev--) {
+    Timer  timer(true);
+    
+  
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev - 1);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev - 1);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
     m_idwt3d_one_level(m_data_buf.begin(), {x, y, z});
+     timer1.stop("Cur level");
+  
   }
 }
 

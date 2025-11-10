@@ -512,18 +512,30 @@ FIXED_RATE_HIGH_PREC_LABEL:
     case UINTType::UINT16:
       assert(m_vals_ui.index() == 1);
       assert(m_encoder.index() == 1);
+      auto codes = std::get<1>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint16_t), codes.data());
+      std::cout<<"uint16 dumped."<<std::endl;
+
       rtn = std::get<1>(m_encoder)->use_coeffs(std::move(std::get<1>(m_vals_ui)),
                                                std::move(m_sign_array));
       break;
     case UINTType::UINT32:
       assert(m_vals_ui.index() == 2);
       assert(m_encoder.index() == 2);
+      auto codes = std::get<2>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint32_t), codes.data());
+      std::cout<<"uint32 dumped."<<std::endl;
+
       rtn = std::get<2>(m_encoder)->use_coeffs(std::move(std::get<2>(m_vals_ui)),
                                                std::move(m_sign_array));
       break;
     default:
       assert(m_vals_ui.index() == 3);
       assert(m_encoder.index() == 3);
+      auto codes = std::get<3>(m_vals_ui);
+      sperr::write_n_bytes("sperr_quant_codes.test", codes.size() * sizeof(uint64_t), codes.data());
+      std::cout<<"uint64 dumped."<<std::endl;
+
       rtn = std::get<3>(m_encoder)->use_coeffs(std::move(std::get<3>(m_vals_ui)),
                                                std::move(m_sign_array));
   }

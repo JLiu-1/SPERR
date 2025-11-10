@@ -214,10 +214,10 @@ void sperr::CDF97::m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_
     m_qcc_buf.resize(len);
 
   if (len % 2 == 0) {
-    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base.data(), len, stride);
+    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base->data(), len, stride);
   }
   else {
-    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base.data(), len, stride);
+    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base->data(), len, stride);
   }
 
   // Pack [even, odd] into [L | H] layout along the same strided line.
@@ -279,7 +279,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base.data(), len, stride);
+    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base->data(), len, stride);
   }
   else {
     // odd-even
@@ -288,7 +288,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base.data(), len, stride);
+    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base->data(), len, stride);
   }
 }
 

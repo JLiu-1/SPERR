@@ -280,7 +280,7 @@ void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev - 1);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
     m_idwt3d_one_level(m_data_buf.begin(), {x, y, z});
-     timer1.stop("Cur level");
+     timer.stop("Cur level");
   
   }
 }

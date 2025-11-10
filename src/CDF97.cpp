@@ -214,10 +214,10 @@ void sperr::CDF97::m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_
     m_qcc_buf.resize(len);
 
   if (len % 2 == 0) {
-    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base->data(), len, stride);
+    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base, len, stride);
   }
   else {
-    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base->data(), len, stride);
+    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base, len, stride);
   }
 
   // Pack [even, odd] into [L | H] layout along the same strided line.
@@ -304,14 +304,14 @@ void sperr::CDF97::m_dwt2d_one_level(itd_type plane, std::array<size_t, 2> len_x
 
   // 1) DWT along X for each row (contiguous).
   for (size_t y = 0; y < len_xy[1]; ++y) {
-    double* row = plane + y * m_dims[0];
+    auto row = plane + y * m_dims[0];
     m_dwt1d_one_level(row, len_xy[0]);
   }
 
   // 2) DWT along Y for each column (stride-aware).
   const ptrdiff_t stride_y = static_cast<ptrdiff_t>(m_dims[0]);
   for (size_t x = 0; x < len_xy[0]; ++x) {
-    double* col0 = plane + x;  // (x,0)
+    auto col0 = plane + x;  // (x,0)
     m_dwt1d_one_level_strided(col0, len_xy[1], stride_y);
   }
 }
@@ -328,13 +328,13 @@ void sperr::CDF97::m_idwt2d_one_level(itd_type plane, std::array<size_t, 2> len_
   // 1) IDWT along Y for each column (stride-aware).
   const ptrdiff_t stride_y = static_cast<ptrdiff_t>(m_dims[0]);
   for (size_t x = 0; x < len_xy[0]; ++x) {
-    double* col0 = plane + x;  // (x,0)
+    auto col0 = plane + x;  // (x,0)
     m_idwt1d_one_level_strided(col0, len_xy[1], stride_y);
   }
 
   // 2) IDWT along X for each row (contiguous).
   for (size_t y = 0; y < len_xy[1]; ++y) {
-    double* row = plane + y * m_dims[0];
+    auto row = plane + y * m_dims[0];
     m_idwt1d_one_level(row, len_xy[0]);
   }
 }
@@ -708,7 +708,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetricEvenEven(double* signal, size_t s
   for (size_t i = 2; i < signal_length; i += 2)
     signal[i] += BETA * (signal[i + 1] + signal[i - 1]);
 
-  for (size_t i = 1; i < signal_length - 2; i += 2)
+  for (size_t i = 1; i < signal_length - 2; i += 2)E
     signal[i] += GAMMA * (signal[i - 1] + signal[i + 1]);
 
   signal[signal_length - 1] += 2.0 * GAMMA * signal[signal_length - 2];

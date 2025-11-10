@@ -82,7 +82,7 @@ class SPECK_FLT {
   std::vector<vecd_type> m_hierarchy;  // multi-resolution decoding
 
   CDF97 m_cdf;
-  CDF97_F m_cdf_f;
+  //CDF97_F m_cdf_f;
   Conditioner m_conditioner;
   Outlier_Coder m_out_coder;
 

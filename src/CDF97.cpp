@@ -115,11 +115,15 @@ auto sperr::CDF97::idwt2d_multi_res() -> std::vector<vecd_type>
 void sperr::CDF97::dwt3d()
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
-  std::cout<<dyadic<<std::endl;
-  if (dyadic)
+
+  if (dyadic){
+    std::cout<<"dyadic"<<std::endl;
     m_dwt3d_dyadic(*dyadic);
-  else
+  }
+  else{
+    std::cout<<"non-dyadic"<<std::endl;
     m_dwt3d_wavelet_packet();
+  }
 }
 
 void sperr::CDF97::idwt3d()

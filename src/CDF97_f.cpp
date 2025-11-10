@@ -61,14 +61,14 @@ auto sperr::CDF97_F::view_data() const -> const vecf_type&
   return m_data_buf;
 }
 
-auto sperr::CDF97_F::release_data() -> vecd_type&&
+auto sperr::CDF97_F::release_data() -> vecd_type
 {
   vecd_type data(m_data_buf.size());
   for (size_t i = 0; i < m_data_buf.size(); ++i) {
       data[i] = static_cast<double>(m_data_buf[i]);
   }
   m_data_buf.clear();
-  return std::move(data);
+  return data;
   //return std::move(m_data_buf);
 }
 

@@ -464,7 +464,7 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
     const size_t offset = plane_size_xy * z;
     m_dwt2d_one_level(vol + offset, {len_xyz[0], len_xyz[1]});
   }
-  timer.stop("XY one level")
+  timer.stop("XY one level");
 
   const auto beg = m_qcc_buf.begin();  // First half of the buffer
   const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
@@ -509,7 +509,7 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
       }
     }
   }
-  timer.stop("Z one level")
+  timer.stop("Z one level");
 }
 
 void sperr::CDF97::m_idwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz)

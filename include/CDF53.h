@@ -158,7 +158,7 @@ class CDF53 {
   //
 
   // Paper coefficients
-  const double M_SQRT2 = std::sqrt(2.0);
+  //const double M_SQRT2 = std::sqrt(2.0);
 
 };
 

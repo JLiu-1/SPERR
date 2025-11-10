@@ -49,14 +49,11 @@ auto sperr::CDF97::take_data(vecd_type&& buf, dims_type dims) -> RTNType
   return RTNType::Good;
 }
 
-auto sperr::CDF97::release_data() -> vecd_type
+auto sperr::CDF97::release_data() -> vecd_type&&
 {
-  auto ret = std::move(m_data_buf);
-  m_data_buf.clear();
-  m_dims = {0, 0, 0};
-
-  return ret;
+  return std::move(m_data_buf);
 }
+
 
 auto sperr::CDF97::view_data() const -> const vecd_type&
 {
@@ -96,27 +93,24 @@ void sperr::CDF97::idwt2d()
   m_idwt2d(m_data_buf.begin(), {m_dims[0], m_dims[1]}, num_xforms);
 }
 
-void sperr::CDF97::idwt2d_multi_res(std::vector<vecd_type>& h)
+auto sperr::CDF97::idwt2d_multi_res() -> std::vector<vecd_type>
 {
-  auto n = std::min(m_dims[0], m_dims[1]);
-  auto dyadic = sperr::num_of_xforms(n);
+  const auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));
+  auto ret = std::vector<vecd_type>();
 
-  if (!dyadic)
-    return;
-
-  if (h.size() != *dyadic)
-    return;
-
-  for (size_t lev = *dyadic; lev > 0; lev--) {
-    auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
-    auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
-    auto& buf = h[*dyadic - lev];
-    if (buf.size() != x * y)
-      return;
-    m_sub_slice({x, y}, buf.begin());
-    m_idwt2d_one_level(m_data_buf.begin(), {x + xd, y + yd});
+  if (xy > 0) {
+    ret.reserve(xy);
+    for (size_t lev = xy; lev > 0; lev--) {
+      auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
+      auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
+      ret.emplace_back(m_sub_slice({x, y}));
+      m_idwt2d_one_level(m_data_buf.begin(), {x + xd, y + yd});
+    }
   }
+
+  return ret;
 }
+
 
 void sperr::CDF97::dwt3d()
 {
@@ -220,10 +214,10 @@ void sperr::CDF97::m_dwt1d_one_level_strided(itd_type base, size_t len, ptrdiff_
     m_qcc_buf.resize(len);
 
   if (len % 2 == 0) {
-    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base, len, stride);
+    QccWAVCDF97AnalysisSymmetricEvenEvenStrided(base.data(), len, stride);
   }
   else {
-    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base, len, stride);
+    QccWAVCDF97AnalysisSymmetricOddEvenStrided(base.data(), len, stride);
   }
 
   // Pack [even, odd] into [L | H] layout along the same strided line.
@@ -285,7 +279,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base, len, stride);
+    QccWAVCDF97SynthesisSymmetricEvenEvenStrided(base.data(), len, stride);
   }
   else {
     // odd-even
@@ -294,7 +288,7 @@ void sperr::CDF97::m_idwt1d_one_level_strided(itd_type base, size_t len, ptrdiff
     for (size_t i = 0; i < high_count; ++i)
       base[(2 * i + 1) * stride] = m_qcc_buf[low_count + i];
 
-    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base, len, stride);
+    QccWAVCDF97SynthesisSymmetricOddEvenStrided(base.data(), len, stride);
   }
 }
 

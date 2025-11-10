@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include <iostream>
 template <typename T>
 auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNType
 {

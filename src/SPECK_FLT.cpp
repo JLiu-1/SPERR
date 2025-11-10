@@ -548,14 +548,14 @@ FIXED_RATE_HIGH_PREC_LABEL:
 
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
   size_t speck_encoded_bits;
-  if (m_encoder.index() == 1)
+  if (m_encoder.index() == 0)
+    speck_encoded_bits = std::get<0>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  else if (m_encoder.index() == 1)
     speck_encoded_bits = std::get<1>(m_encoder)->encoded_bitstream_len() * size_t{8};
   else if (m_encoder.index() == 2)
     speck_encoded_bits = std::get<2>(m_encoder)->encoded_bitstream_len() * size_t{8};
   else if (m_encoder.index() == 3)
     speck_encoded_bits = std::get<3>(m_encoder)->encoded_bitstream_len() * size_t{8};
-  else if (m_encoder.index() == 4)
-    speck_encoded_bits = std::get<4>(m_encoder)->encoded_bitstream_len() * size_t{8};
   std::cout<<speck_encoded_bits<<" bits produced after SPECK."<<std::endl;
 
     std::cout<<"FP32 CR:"<<double(total_vals) * 32 / speck_encoded_bits<<std::endl;

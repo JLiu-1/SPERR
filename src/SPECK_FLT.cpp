@@ -441,9 +441,9 @@ auto sperr::SPECK_FLT::compress() -> RTNType
 
   // Step 2: wavelet transform
   m_cdf.take_data(std::move(m_vals_d), m_dims);
-  Timer timer(true);
+  Timer timer1(true);
   m_wavelet_xform();
-  timer.stop("DWT");
+  timer1.stop("DWT");
   
   m_vals_d = m_cdf.release_data();
 
@@ -473,9 +473,9 @@ FIXED_RATE_HIGH_PREC_LABEL:
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;
-    Timer timer(true);
+    Timer timer2(true);
     m_inverse_wavelet_xform(false);  // No multi-resolution needed!
-    timer.stop("IDWT");
+    timer2.stop("IDWT");
     
     m_vals_d = m_cdf.release_data();
     auto LOS = std::vector<Outlier>();

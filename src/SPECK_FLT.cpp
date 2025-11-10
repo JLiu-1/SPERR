@@ -547,7 +547,10 @@ FIXED_RATE_HIGH_PREC_LABEL:
     return rtn;
 
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
+  auto actual = std::get<m_encoder.index()>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  std::cout<<actual<<" bits produced after SPECK."<<std::endl;
 
+  std::cout<<"FP32 CR:"<<double(total_vals) * 32 / actual<<std::endl;
   // In CompMode::Rate mode, we see if there's enough bits produced. If not, we adjust `m_q`
   //    so quantiztion is done with a higher precision.
   //    Btw I know that GOTO should be used very sparsely and with great caution. I think this

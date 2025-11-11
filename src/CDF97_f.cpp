@@ -499,17 +499,16 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
   Timer timer(true);
   if (len_xyz[2] % 2 == 0) {  // Even length
 
-    size_t x_bs = 10, y_bs = 2;
-    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=y_bs) {
-      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=x_bs) {
+    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=m_y_bs) {
+      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=m_x_bs) {
         const size_t xy_offset_base = y_start * m_dims[0] + x_start;
         for (size_t z = 0; z < len_xyz[2]; z++){
           
-          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,y_bs); y_id++) {
-            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,x_bs); x_id++) {
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
               //if(x==0 && y==0)
               //  timer.start();
-              const size_t z_offset = 2 * len_xyz[2] * (y_id*x_bs+x_id);
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
               const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
               m_qcc_buf[z + z_offset] = m_data_buf[z * plane_size_xy + xy_offset];
              }
@@ -523,9 +522,9 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
         //  timer.start();
        // }
         // Step 2
-        for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,y_bs); y_id++) {
-          for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,x_bs); x_id++) {
-            const size_t z_offset = 2 * len_xyz[2] * (y_id*x_bs+x_id);
+        for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+          for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+            const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
            
             this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data()+z_offset, len_xyz[2]);
              // Step 3
@@ -542,9 +541,9 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
        
         // Step 4
         for (size_t z = 0; z < len_xyz[2]; z++){
-          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,y_bs); y_id++) {
-            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,x_bs); x_id++) {
-              const size_t z_offset = 2 * len_xyz[2] * (y_id*x_bs+x_id);
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
               const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
                const auto beg2 = m_qcc_buf.begin() + z_offset + len_xyz[2];  // Second half of the buffer
 

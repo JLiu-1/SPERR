@@ -499,10 +499,11 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
   if (len_xyz[2] % 2 == 0) {  // Even length
 
     size_t x_bs = 10, y_bs = 2;
-    for (size_t y_start = 0; y_start < len_xyz[1]; y+=y_bs) {
-      for (size_t x_start = 0; x_start < len_xyz[0]; x+=x_bs) {
+    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=y_bs) {
+      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=x_bs) {
+        const size_t xy_offset_base = y_start * m_dims[0] + x_start;
         for (size_t z = 0; z < len_xyz[2]; z++){
-          const size_t xy_offset_base = y_start * m_dims[0] + x_start;
+          
           for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,y_bs); y_id++) {
             for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,x_bs); x_id++) {
               //if(x==0 && y==0)
@@ -544,7 +545,7 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
             for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,x_bs); x_id++) {
               const size_t z_offset = 2 * len_xyz[2] * (y_id*x_bs+x_id);
               const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
-               const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
+               const auto beg2 = m_qcc_buf.begin() + z_offset + len_xyz[2];  // Second half of the buffer
 
               m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
             }
@@ -558,6 +559,8 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
     }
   }
   else {  // Odd length
+    const auto beg = m_qcc_buf.begin() ;  // First half of the buffer
+    const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {
         const size_t xy_offset = y * m_dims[0] + x;

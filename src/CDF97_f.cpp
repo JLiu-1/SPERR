@@ -65,7 +65,7 @@ auto sperr::CDF97_F::release_data() -> vecd_type
 {
   vecd_type data(m_data_buf.size());
   for (size_t i = 0; i < m_data_buf.size(); ++i) {
-      data = static_cast<double>(m_data_buf[i]);
+      data[i] = static_cast<double>(m_data_buf[i]);
   }
   m_data_buf.clear();
   return data;

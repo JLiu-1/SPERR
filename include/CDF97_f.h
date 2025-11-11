@@ -139,7 +139,7 @@ class CDF97_F {
   // should not be used by higher-level functions. `m_slice_buf` is only used by
   // wavelet-packet transforms.
   vecd_type m_qcc_buf;
-  vecd_type m_slice_buf;
+  vecf_type m_slice_buf;
 
   //
   // Note on the coefficients and constants:

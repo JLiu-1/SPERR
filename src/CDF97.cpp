@@ -546,8 +546,6 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
   }
   double * temp = new double [len_xyz[0]*len_xyz[1]*len_xyz[2]];
   size_t even_len_z = (len_xyz[2]-1)/2 + 1;
-  size_t even_len_y = (len_xyz[1]-1)/2 + 1;
-  size_t even_len_x = (len_xyz[0]-1)/2 + 1;
   size_t temp_plane_size_xy = len_xyz[0] * len_xyz[1];
   for (size_t z = 0; z < len_xyz[2]; z++) {
     auto offset_z = z * plane_size_xy;
@@ -570,10 +568,8 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0];
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          auto zz = z < even_len_z ? z * 2 : (z-even_len_z) * 2 +1;
-          auto yy = y ;
-          auto xx = x ;
-          auto data_offset = zz * plane_size_xy + yy * m_dims[0] + xx;
+          
+          auto data_offset = z * plane_size_xy + y * m_dims[0] + x;
           m_data_buf[data_offset] = temp[offset];
       }
     }

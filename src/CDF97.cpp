@@ -435,7 +435,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0];
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          m_data_buf[offset] += ALPHA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+          m_data_buf[offset] += ALPHA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy]);
       }
     }
   }
@@ -445,7 +445,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0] ;
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          m_data_buf[offset] += 2 * ALPHA * m_data_buf[offset-plane_size_xy]； 
+          m_data_buf[offset] += 2 * ALPHA * m_data_buf[offset-plane_size_xy]; 
       }
     }
   }
@@ -453,7 +453,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
     auto offset_y = y * len_xyz[0] ;
     for (size_t x = 0; x < len_xyz[0]; x++) {
         auto offset =  offset_y + x;
-        m_data_buf[offset] += 2 * BETA * m_data_buf[offset+plane_size_xy]； 
+        m_data_buf[offset] += 2 * BETA * m_data_buf[offset+plane_size_xy]; 
     }
   }
 
@@ -463,7 +463,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0] ;
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          m_data_buf[offset] += BETA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+          m_data_buf[offset] += BETA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy]); 
       }
     }
   }
@@ -474,7 +474,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0] ;
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          m_data_buf[offset] += 2 * BETA * m_data_buf[offset - plane_size_xy]； 
+          m_data_buf[offset] += 2 * BETA * m_data_buf[offset - plane_size_xy]; 
       }
     }
   }
@@ -485,7 +485,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       auto offset_y = y * len_xyz[0] ;
       for (size_t x = 0; x < len_xyz[0]; x++) {
           auto offset = offset_z + offset_y + x;
-          m_data_buf[offset] += GAMMA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+          m_data_buf[offset] += GAMMA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy]); 
       }
     }
   }

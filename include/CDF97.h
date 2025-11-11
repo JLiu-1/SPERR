@@ -116,9 +116,6 @@ class CDF97 {
   vecd_type m_data_buf;          // Holds the entire input data.
   dims_type m_dims = {0, 0, 0};  // Dimension of the data volume
 
-  size_t m_x_bs = 10;
-  size_t m_y_bs = 2;
-
   // Temporary buffers that are big enough for any 1D column or any 2D slice.
   vecd_type m_slice_buf;
   double* m_aligned_buf = nullptr;

@@ -94,18 +94,18 @@ class CDF97_F {
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
   // Note 2: two versions for even and odd length input.
-  void m_gather_even(citd_type begin, citd_type end, itf_type dest) const;
-  void m_gather_even(citd_type begin, citd_type end, itd_type dest) const;
-  void m_gather_odd(citd_type begin, citd_type end, itf_type dest) const;
-  void m_gather_odd(citd_type begin, citd_type end, itd_type dest) const;
+  void m_gather_even(citf_type begin, citf_type end, itf_type dest) const;
+  //void m_gather_even(citd_type begin, citd_type end, itd_type dest) const;
+  void m_gather_odd(citf_type begin, citf_type end, itf_type dest) const;
+  //void m_gather_odd(citd_type begin, citd_type end, itd_type dest) const;
 
   // Interleave low and high pass elements to be at even and odd positions of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
   // Note 2: two versions for even and odd length input.
-  void m_scatter_even(citf_type begin, citf_type end, itd_type dest) const;
-   void m_scatter_even(citd_type begin, citd_type end, itd_type dest) const;
-  void m_scatter_odd(citf_type begin, citf_type end, itd_type dest) const;
-  void m_scatter_odd(citd_type begin, citd_type end, itd_type dest) const;
+  void m_scatter_even(citf_type begin, citf_type end, itf_type dest) const;
+   //void m_scatter_even(citd_type begin, citd_type end, itd_type dest) const;
+  void m_scatter_odd(citf_type begin, citf_type end, itf_type dest) const;
+  //void m_scatter_odd(citd_type begin, citd_type end, itd_type dest) const;
 
   // Two flavors of 3D transforms.
   // They should be invoked by the `dwt3d()` and `idwt3d()` public methods, not users, though.
@@ -123,10 +123,10 @@ class CDF97_F {
   //
   // Methods from QccPack, so keep their original names, interface, and the use of raw pointers.
   //
-  void QccWAVCDF97AnalysisSymmetricEvenEven(double* signal, size_t signal_length);
-  void QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t signal_length);
-  void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
-  void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetricEvenEven(float* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetricOddEven(float* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetricEvenEven(float* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetricOddEven(float* signal, size_t signal_length);
 
   //
   // Private data members
@@ -138,7 +138,7 @@ class CDF97_F {
   // slice. Note: `m_qcc_buf` should be used by m_***_one_level() functions and
   // should not be used by higher-level functions. `m_slice_buf` is only used by
   // wavelet-packet transforms.
-  vecd_type m_qcc_buf;
+  vecf_type m_qcc_buf;
   vecf_type m_slice_buf;
 
   //

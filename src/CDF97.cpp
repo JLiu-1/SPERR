@@ -544,6 +544,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
       }
     }
   }
+  Timer timer2(true);
   double * temp = new double [len_xyz[0]*len_xyz[1]*len_xyz[2]];
   size_t even_len_z = (len_xyz[2]-1)/2 + 1;
   size_t temp_plane_size_xy = len_xyz[0] * len_xyz[1];
@@ -576,6 +577,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
   }
   delete []temp;
 
+   timer2.stop("gather");
 
 
   timer.stop("z dwt");

@@ -27,8 +27,9 @@ mkdir SPERR/build                               # create the build directory
 cd SPERR/build                                  # enter the build directory
 cmake ..                                        # use cmake to configure the project
 cmake -DUSE_OMP=ON ..                           # Optional: enable OpenMP on 3D volumes.
-cmake -DCMAKE_INSTALL_PREFIX=/my/install/dir .. # Optional: specify a directory to install SPERR. The default is /usr/local .
+cmake -DENABLE_AVX2=OFF ..                      # Optional: disable AVX2 instructions. The code is slightly faster with AVX2.
 cmake -DCMAKE_CXX_STANDARD=17 ..                # Optional: use C++17 rather than C++20. The code is slightly faster with C++20.
+cmake -DCMAKE_INSTALL_PREFIX=/my/install/dir .. # Optional: specify a directory to install SPERR. The default is /usr/local .
 make -j 8                                       # build the project
 ctest .                                         # run unit tests, which should have 100% tests passed
 make install                                    # install the library and CLI tools to a specified directory.
@@ -69,6 +70,8 @@ If SPERR benefits your work, please kindly cite [this publication](https://ieeex
 (Author's copy is available [here](https://vast.ucar.edu/pdfs/SPERR_IPDPS.pdf).)
 
 ## Presentations
-- FZ Workshop Hands-on: Feb 15 2024, Sarasota, FL. ([handout and examples](https://vast.ucar.edu/pdfs/Li_FZ2024.pdf))
-- SC'23 Tutorial on lossy scientific data compression: Nov 13 2023, Denver CO. ([slides](https://vast.ucar.edu/pdfs/Li_SC23_Slides.pdf))
-- IPDPS'23 Lossy Scientific Data Compression With SPERR: May 18 2023, St. Petersburg, FL. ([slides](https://vast.ucar.edu/pdfs/Li_IPDPS23_Slides.pdf))
+- SC'24 Tutorial: Nov 18 2024, Atlanta, GA. ([slides](./handout/SC24-Tutorial-SPERR.pdf) 
+  by [lindstro](https://github.com/lindstro))
+- FZ Workshop: Feb 15 2024, Sarasota, FL. ([handout and examples](https://vast.ucar.edu/pdfs/Li_FZ2024.pdf))
+- SC'23 Tutorial: Nov 13 2023, Denver CO. ([slides](https://vast.ucar.edu/pdfs/Li_SC23_Slides.pdf))
+- IPDPS'23: May 18 2023, St. Petersburg, FL. ([slides](https://vast.ucar.edu/pdfs/Li_IPDPS23_Slides.pdf))

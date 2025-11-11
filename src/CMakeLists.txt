@@ -31,6 +31,16 @@ if(USE_OMP)
   target_link_libraries(    SPERR PUBLIC OpenMP::OpenMP_CXX )
 endif()
 
+if(ENABLE_AVX2)
+  message(STATUS "AVX2 compilation enabled.")
+  target_compile_options(SPERR PRIVATE -mavx2 -mfma)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(WARNING "Compiler '${CMAKE_CXX_COMPILER_ID}' might not explicitly support AVX2 flags. Please add them manually if needed.")
+  endif()
+else()
+  message(STATUS "AVX2 compilation disabled.")
+endif()
+
 
 #
 # LTO
@@ -75,4 +85,3 @@ include/SPERR3D_OMP_D.h;\
 include/Outlier_Coder.h;\
 include/SPERR_C_API.h;")
 set_target_properties( SPERR PROPERTIES PUBLIC_HEADER "${public_h_list}" )
-

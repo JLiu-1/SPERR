@@ -1,10 +1,10 @@
 #include "CDF97.h"
-
+#include<iostream>
 #include <algorithm>
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include "Timer.h"
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
@@ -428,7 +428,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
   }*/
 
 
-
+  Timer timer(true);
   for (size_t z = 1; z+1 < len_xyz[2]; z+=2) {
     auto offset_z = z * plane_size_xy;
     for (size_t y = 0; y < len_xyz[1]; y++) {
@@ -546,7 +546,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
   }
 
 
-
+  timer.stop("z dwt");
 
 
 

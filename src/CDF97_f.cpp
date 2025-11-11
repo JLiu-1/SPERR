@@ -501,20 +501,20 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {
         if(x==0 && y==0)
-          timer.begin();
+          timer.start();
         const size_t xy_offset = y * m_dims[0] + x;
         // Step 1
         for (size_t z = 0; z < len_xyz[2]; z++)
           m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
         if(x==0 && y==0){
           timer.stop("to qcc buf");
-          timer.begin();
+          timer.start();
         }
         // Step 2
         this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xyz[2]);
         if(x==0 && y==0){
           timer.stop("qcc wave");
-          timer.begin();
+          timer.start();
         }
         // Step 3
         m_gather_even(beg, beg2, beg2);

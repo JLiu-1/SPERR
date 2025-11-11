@@ -496,7 +496,7 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-  Timer timer(true);
+  //Timer timer(true);
   if (len_xyz[2] % 2 == 0) {  // Even length
 
     for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=m_y_bs) {
@@ -559,21 +559,61 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
     }
   }
   else {  // Odd length
-    const auto beg = m_qcc_buf.begin() ;  // First half of the buffer
-    const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
+    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=m_y_bs) {
+      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=m_x_bs) {
+        const size_t xy_offset_base = y_start * m_dims[0] + x_start;
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              //if(x==0 && y==0)
+              //  timer.start();
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
+              m_qcc_buf[z + z_offset] = m_data_buf[z * plane_size_xy + xy_offset];
+             }
+           }
+         }
         // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+        
+          
+        //if(x==0 && y==0){
+        //  timer.stop("to qcc buf");
+        //  timer.start();
+       // }
         // Step 2
-        this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data(), len_xyz[2]);
-        // Step 3
-        m_gather_odd(beg, beg2, beg2);
+        for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+          for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+            const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+           
+            this->QccWAVCDF97AnalysisSymmetricOddEven(m_qcc_buf.data()+z_offset, len_xyz[2]);
+             // Step 3
+             const auto beg = m_qcc_buf.begin() + z_offset;  // First half of the buffer
+            const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
+            m_gather_odd(beg, beg2, beg2);
+             
+          }
+        }
+       // if(x==0 && y==0){
+       //   timer.stop("qcc wave");
+       //   timer.start();
+       // }
+       
         // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
+               const auto beg2 = m_qcc_buf.begin() + z_offset + len_xyz[2];  // Second half of the buffer
+
+              m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+            }
+          }
+        }
+        //if(x==0 && y==0){
+        //  timer.stop("from qcc wave");
+       // }
+         
       }
     }
   }
@@ -592,36 +632,122 @@ void sperr::CDF97_F::m_idwt3d_one_level(itf_type vol, std::array<size_t, 3> len_
   // 4) put the Z column back to their locations as a Z column.
 
   if (len_xyz[2] % 2 == 0) {
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
+    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=m_y_bs) {
+      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=m_x_bs) {
+        const size_t xy_offset_base = y_start * m_dims[0] + x_start;
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              //if(x==0 && y==0)
+              //  timer.start();
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
+              m_qcc_buf[z + z_offset] = m_data_buf[z * plane_size_xy + xy_offset];
+             }
+           }
+         }
         // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+        
+          
+        //if(x==0 && y==0){
+        //  timer.stop("to qcc buf");
+        //  timer.start();
+       // }
         // Step 2
-        m_scatter_even(beg, beg2, beg2);
-        // Step 3
-        this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+        for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+          for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+            const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+             const auto beg = m_qcc_buf.begin() + z_offset;  // First half of the buffer
+            const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
+            m_scatter_even(beg, beg2, beg2);
+            this->QccWAVCDF97SynthesisSymmetricEvenEven(m_qcc_buf.data() + z_offset + len_xyz[2], len_xyz[2]);
+             // Step 3
+            
+             
+          }
+        }
+       // if(x==0 && y==0){
+       //   timer.stop("qcc wave");
+       //   timer.start();
+       // }
+       
         // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
+               const auto beg2 = m_qcc_buf.begin() + z_offset + len_xyz[2];  // Second half of the buffer
+
+              m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+            }
+          }
+        }
+        //if(x==0 && y==0){
+        //  timer.stop("from qcc wave");
+       // }
+         
       }
     }
   }
   else {
-    for (size_t y = 0; y < len_xyz[1]; y++) {
-      for (size_t x = 0; x < len_xyz[0]; x++) {
-        const size_t xy_offset = y * m_dims[0] + x;
+    for (size_t y_start = 0; y_start < len_xyz[1]; y_start+=m_y_bs) {
+      for (size_t x_start = 0; x_start < len_xyz[0]; x_start+=m_x_bs) {
+        const size_t xy_offset_base = y_start * m_dims[0] + x_start;
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              //if(x==0 && y==0)
+              //  timer.start();
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base+y_id * m_dims[0] + x_id;
+              m_qcc_buf[z + z_offset] = m_data_buf[z * plane_size_xy + xy_offset];
+             }
+           }
+         }
         // Step 1
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+        
+          
+        //if(x==0 && y==0){
+        //  timer.stop("to qcc buf");
+        //  timer.start();
+       // }
         // Step 2
-        m_scatter_odd(beg, beg2, beg2);
-        // Step 3
-        this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + len_xyz[2], len_xyz[2]);
+        for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+          for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+            const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+             const auto beg = m_qcc_buf.begin() + z_offset;  // First half of the buffer
+            const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
+            m_scatter_odd(beg, beg2, beg2);
+            this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data() + z_offset + len_xyz[2], len_xyz[2]);
+             // Step 3
+            
+             
+          }
+        }
+       // if(x==0 && y==0){
+       //   timer.stop("qcc wave");
+       //   timer.start();
+       // }
+       
         // Step 4
-        for (size_t z = 0; z < len_xyz[2]; z++)
-          m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        for (size_t z = 0; z < len_xyz[2]; z++){
+          for (size_t y_id = 0; y_id < std::min(len_xyz[1]-y_start,m_y_bs); y_id++) {
+            for (size_t x_id = 0; x_id < std::min(len_xyz[0]-x_start,m_x_bs); x_id++) {
+              const size_t z_offset = 2 * len_xyz[2] * (y_id*m_x_bs+x_id);
+              const size_t xy_offset = xy_offset_base + y_id * m_dims[0] + x_id;
+               const auto beg2 = m_qcc_buf.begin() + z_offset + len_xyz[2];  // Second half of the buffer
+
+              m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+            }
+          }
+        }
+        //if(x==0 && y==0){
+        //  timer.stop("from qcc wave");
+       // }
+         
       }
     }
   }

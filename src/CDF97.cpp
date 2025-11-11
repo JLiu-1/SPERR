@@ -459,12 +459,10 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
 {
   // First, do one level of transform on all XY planes.
   const auto plane_size_xy = m_dims[0] * m_dims[1];
-  Timer timer(true);
   for (size_t z = 0; z < len_xyz[2]; z++) {
     const size_t offset = plane_size_xy * z;
     m_dwt2d_one_level(vol + offset, {len_xyz[0], len_xyz[1]});
   }
-  timer.stop("XY one level");
 
   const auto beg = m_qcc_buf.begin();  // First half of the buffer
   const auto beg2 = beg + len_xyz[2];  // Second half of the buffer
@@ -474,21 +472,34 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-  timer.start();
+  Timer timer(true);
   if (len_xyz[2] % 2 == 0) {  // Even length
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {
+        if(x==0 && y==0)
+          timer.start();
         const size_t xy_offset = y * m_dims[0] + x;
         // Step 1
         for (size_t z = 0; z < len_xyz[2]; z++)
           m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+        if(x==0 && y==0){
+          timer.stop("to qcc buf");
+          timer.start();
+        }
         // Step 2
         this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xyz[2]);
+        if(x==0 && y==0){
+          timer.stop("qcc wave");
+          timer.start();
+        }
         // Step 3
         m_gather_even(beg, beg2, beg2);
         // Step 4
         for (size_t z = 0; z < len_xyz[2]; z++)
           m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        if(x==0 && y==0){
+          timer.stop("from qcc wave");
+        }
       }
     }
   }
@@ -509,7 +520,6 @@ void sperr::CDF97::m_dwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz
       }
     }
   }
-  timer.stop("Z one level");
 }
 
 void sperr::CDF97::m_idwt3d_one_level(itd_type vol, std::array<size_t, 3> len_xyz)

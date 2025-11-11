@@ -43,7 +43,7 @@ class SPECK_FLT {
   //
   void append_encoded_bitstream(vec8_type& buf) const;
   auto view_decoded_data() const -> const vecd_type&;
-  auto view_hierarchy() const -> const std::vector<vecf_type>&;
+  auto view_hierarchy() const -> const std::vector<vecd_type>&;
   auto release_decoded_data() -> vecd_type&&;
   auto release_hierarchy() -> std::vector<vecd_type> &&;
 

@@ -148,7 +148,7 @@ auto sperr::SPECK_FLT::release_hierarchy() -> std::vector<vecd_type>
   return ret;
 }
 
-auto sperr::SPECK_FLT::view_hierarchy() const -> const std::vector<vecd_type>&
+auto sperr::SPECK_FLT::view_hierarchy() const -> const std::vector<vecf_type>&
 {
   return m_hierarchy;
 }

@@ -53,8 +53,8 @@ class CDF97_F {
   //    still be retrieved by the `view_data()` or `release_data()` functions.
   //    If multi-resolution is not supported, then it simply returns an empty vector, with the
   //    decompression still performed, and the native resolution reconstruction ready.
-  [[nodiscard]] auto idwt2d_multi_res() -> std::vector<vecf_type>;
-  void idwt3d_multi_res(std::vector<vecf_type>&);
+  [[nodiscard]] auto idwt2d_multi_res() -> std::vector<vecd_type>;
+  void idwt3d_multi_res(std::vector<vecd_type>&);
 
  private:
   using itf_type = vecf_type::iterator;

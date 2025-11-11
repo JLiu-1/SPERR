@@ -101,7 +101,7 @@ void sperr::CDF97_F::idwt2d()
   m_idwt2d(m_data_buf.begin(), {m_dims[0], m_dims[1]}, xy);
 }
 
-auto sperr::CDF97_F::idwt2d_multi_res() -> std::vector<vecf_type>
+auto sperr::CDF97_F::idwt2d_multi_res() -> std::vector<vecd_type>
 {
   const auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));
   auto ret = std::vector<vecf_type>();
@@ -116,7 +116,16 @@ auto sperr::CDF97_F::idwt2d_multi_res() -> std::vector<vecf_type>
     }
   }
 
-  return ret;
+  auto ret_d = std::vector<vecd_type>(ret.size());
+  for(size_t i=0;i<ret.size();i++){
+    ret_d[i].resize(ret[i].size());
+    for(size_t j=0;j<ret[i].size();j++){
+      ret_d[i][j]=ret[i][j];
+    }
+    ret[i].clear();
+  }
+
+  return ret_d;
 }
 
 void sperr::CDF97_F::dwt3d()
@@ -137,10 +146,10 @@ void sperr::CDF97_F::idwt3d()
     m_idwt3d_wavelet_packet();
 }
 
-void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecf_type>& h)
+void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecd_type>& h_d)
 {
   auto dyadic = sperr::can_use_dyadic(m_dims);
-
+  std::vector<vecf_type> h;
   if (dyadic) {
     h.resize(*dyadic);
     for (size_t lev = *dyadic; lev > 0; lev--) {
@@ -155,6 +164,15 @@ void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecf_type>& h)
   }
   else
     m_idwt3d_wavelet_packet();
+  
+  h_d.resize(h.size());
+  for(size_t i=0;i<h.size();i++){
+    h_d[i].resize(h[i].size());
+    for(size_t j=0;j<ret[i].size();j++){
+      h_d[i][j]=h[i][j];
+    }
+    h[i].clear();
+  }
 }
 
 void sperr::CDF97_F::m_dwt3d_wavelet_packet()

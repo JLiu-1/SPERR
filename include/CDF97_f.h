@@ -140,6 +140,8 @@ class CDF97_F {
   // wavelet-packet transforms.
   vecf_type m_qcc_buf;
   vecf_type m_slice_buf;
+  size_t m_x_bs = 10;
+  size_t m_y_bs = 2;
 
   //
   // Note on the coefficients and constants:

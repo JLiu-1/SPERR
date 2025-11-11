@@ -351,7 +351,7 @@ void sperr::CDF97_F::m_idwt1d_one_level(itf_type array, size_t array_len)
     m_scatter_odd(array, array + array_len, m_qcc_buf.begin());
     this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), array_len);
   }
-  std::copy<itd_type, itf_type>(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+  std::copy<citd_type, itf_type>(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
 }
 
 void sperr::CDF97_F::m_dwt2d_one_level(itf_type plane, std::array<size_t, 2> len_xy)
@@ -569,7 +569,7 @@ void sperr::CDF97_F::m_idwt3d_one_level(itf_type vol, std::array<size_t, 3> len_
   }
 }
 
-void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itf_type dest) const
+void sperr::CDF97_F::m_gather_even(citd_type begin, citd_type end, itf_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 0);  // This function specifically for even length input
@@ -584,7 +584,7 @@ void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itf_type dest
   }
 }
 
-void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itd_type dest) const
+void sperr::CDF97_F::m_gather_even(citd_type begin, citd_type end, itd_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 0);  // This function specifically for even length input
@@ -599,7 +599,7 @@ void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itd_type dest
   }
 }
 
-void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itf_type dest) const
+void sperr::CDF97_F::m_gather_odd(citd_type begin, citd_type end, itf_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 1);  // This function specifically for odd length input
@@ -614,7 +614,7 @@ void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itf_type dest)
   }
 }
 
-void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itd_type dest) const
+void sperr::CDF97_F::m_gather_odd(citd_type begin, citd_type end, itd_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 1);  // This function specifically for odd length input

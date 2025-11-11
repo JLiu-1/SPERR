@@ -1,4 +1,4 @@
-#include "CDF97_f.h"
+#include "CDF97_F.h"
 
 #include <algorithm>
 #include <cassert>
@@ -61,11 +61,11 @@ auto sperr::CDF97_F::view_data() const -> const vecf_type&
   return m_data_buf;
 }
 
-auto sperr::CDF97_F::release_data() -> vecd_type
+auto sperr::CDF97_F::release_data() -> vecd_type&&
 {
   vecd_type data(m_data_buf.size());
-  for (size_t i = 0; i < m_data_buf.size(); ++i) {
-      data[i] = static_cast<double>(m_data_buf[i]);
+  for (size_t i = 0; i < buf.size(); ++i) {
+      data = static_cast<double>(m_data_buf[i]);
   }
   m_data_buf.clear();
   return data;
@@ -330,7 +330,7 @@ void sperr::CDF97_F::m_idwt2d(itf_type plane, std::array<size_t, 2> len_xy, size
 
 void sperr::CDF97_F::m_dwt1d_one_level(itf_type array, size_t array_len)
 {
-  std::copy(array, array + array_len, m_qcc_buf.begin());
+  std::copy<itf_type, itd_type>(array, array + array_len, m_qcc_buf.begin());
   if (array_len % 2 == 0) {
     this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), array_len);
     m_gather_even(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
@@ -351,7 +351,7 @@ void sperr::CDF97_F::m_idwt1d_one_level(itf_type array, size_t array_len)
     m_scatter_odd(array, array + array_len, m_qcc_buf.begin());
     this->QccWAVCDF97SynthesisSymmetricOddEven(m_qcc_buf.data(), array_len);
   }
-  std::copy(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
+  std::copy<itd_type, itf_type>(m_qcc_buf.cbegin(), m_qcc_buf.cbegin() + array_len, array);
 }
 
 void sperr::CDF97_F::m_dwt2d_one_level(itf_type plane, std::array<size_t, 2> len_xy)
@@ -584,6 +584,21 @@ void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itf_type dest
   }
 }
 
+void sperr::CDF97_F::m_gather_even(citf_type begin, citf_type end, itd_type dest) const
+{
+  auto len = end - begin;
+  assert(len % 2 == 0);  // This function specifically for even length input
+  size_t low_count = len / 2, high_count = len / 2;
+  for (size_t i = 0; i < low_count; i++) {
+    *dest = *(begin + i * 2);
+    ++dest;
+  }
+  for (size_t i = 0; i < high_count; i++) {
+    *dest = *(begin + i * 2 + 1);
+    ++dest;
+  }
+}
+
 void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itf_type dest) const
 {
   auto len = end - begin;
@@ -599,7 +614,22 @@ void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itf_type dest)
   }
 }
 
-void sperr::CDF97_F::m_scatter_even(citf_type begin, citf_type end, itf_type dest) const
+void sperr::CDF97_F::m_gather_odd(citf_type begin, citf_type end, itd_type dest) const
+{
+  auto len = end - begin;
+  assert(len % 2 == 1);  // This function specifically for odd length input
+  size_t low_count = len / 2 + 1, high_count = len / 2;
+  for (size_t i = 0; i < low_count; i++) {
+    *dest = *(begin + i * 2);
+    ++dest;
+  }
+  for (size_t i = 0; i < high_count; i++) {
+    *dest = *(begin + i * 2 + 1);
+    ++dest;
+  }
+}
+
+void sperr::CDF97_F::m_scatter_even(citf_type begin, citf_type end, itd_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 0);  // This function specifically for even length input
@@ -614,7 +644,22 @@ void sperr::CDF97_F::m_scatter_even(citf_type begin, citf_type end, itf_type des
   }
 }
 
-void sperr::CDF97_F::m_scatter_odd(citf_type begin, citf_type end, itf_type dest) const
+void sperr::CDF97_F::m_scatter_even(citd_type begin, citd_type end, itd_type dest) const
+{
+  auto len = end - begin;
+  assert(len % 2 == 0);  // This function specifically for even length input
+  size_t low_count = len / 2, high_count = len / 2;
+  for (size_t i = 0; i < low_count; i++) {
+    *(dest + i * 2) = *begin;
+    ++begin;
+  }
+  for (size_t i = 0; i < high_count; i++) {
+    *(dest + i * 2 + 1) = *begin;
+    ++begin;
+  }
+}
+
+void sperr::CDF97_F::m_scatter_odd(citf_type begin, citf_type end, itd_type dest) const
 {
   auto len = end - begin;
   assert(len % 2 == 1);  // This function specifically for odd length input
@@ -628,6 +673,20 @@ void sperr::CDF97_F::m_scatter_odd(citf_type begin, citf_type end, itf_type dest
     ++begin;
   }
 }
+
+void sperr::CDF97_F::m_scatter_odd(citd_type begin, citd_type end, itd_type dest) const
+{
+  auto len = end - begin;
+  assert(len % 2 == 1);  // This function specifically for odd length input
+  size_t low_count = len / 2 + 1, high_count = len / 2;
+  for (size_t i = 0; i < low_count; i++) {
+    *(dest + i * 2) = *begin;
+    ++begin;
+  }
+  for (size_t i = 0; i < high_count; i++) {
+    *(dest + i * 2 + 1) = *begin;
+    ++begin;
+  }
 
 auto sperr::CDF97_F::m_sub_slice(std::array<size_t, 2> subdims) const -> vecf_type
 {

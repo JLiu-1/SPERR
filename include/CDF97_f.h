@@ -30,7 +30,7 @@ class CDF97_F {
   // Output
   //
   auto view_data() const -> const vecf_type&;
-  auto release_data() -> vecd_type;
+  auto release_data() -> vecd_type&&;
   auto get_dims() const -> std::array<size_t, 3>;  // In 2D case, the 3rd value equals 1.
 
   //
@@ -92,14 +92,18 @@ class CDF97_F {
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
   // Note 2: two versions for even and odd length input.
-  void m_gather_even(citf_type begin, citf_type end, itf_type dest) const;
-  void m_gather_odd(citf_type begin, citf_type end, itf_type dest) const;
+  void m_gather_even(citd_type begin, citd_type end, itf_type dest) const;
+  void m_gather_even(citd_type begin, citd_type end, itd_type dest) const;
+  void m_gather_odd(citd_type begin, citd_type end, itf_type dest) const;
+  void m_gather_odd(citd_type begin, citd_type end, itd_type dest) const;
 
   // Interleave low and high pass elements to be at even and odd positions of the dest array.
   // Note 1: sufficient memory space should be allocated by the caller.
   // Note 2: two versions for even and odd length input.
-  void m_scatter_even(citf_type begin, citf_type end, itf_type dest) const;
-  void m_scatter_odd(citf_type begin, citf_type end, itf_type dest) const;
+  void m_scatter_even(citf_type begin, citf_type end, itd_type dest) const;
+   void m_scatter_even(citd_type begin, citd_type end, itd_type dest) const;
+  void m_scatter_odd(citf_type begin, citf_type end, itd_type dest) const;
+  void m_scatter_odd(citd_type begin, citd_type end, itd_type dest) const;
 
   // Two flavors of 3D transforms.
   // They should be invoked by the `dwt3d()` and `idwt3d()` public methods, not users, though.
@@ -133,7 +137,7 @@ class CDF97_F {
   // should not be used by higher-level functions. `m_slice_buf` is only used by
   // wavelet-packet transforms.
   vecd_type m_qcc_buf;
-  vecf_type m_slice_buf;
+  vecd_type m_slice_buf;
 
   //
   // Note on the coefficients and constants:

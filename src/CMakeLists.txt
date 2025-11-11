@@ -4,6 +4,7 @@ add_library( SPERR
              Bitmask.cpp
              Conditioner.cpp
              CDF97.cpp
+             CDF97_f.cpp
              CDF53.cpp
              SPECK_INT.cpp
              SPECK3D_INT.cpp

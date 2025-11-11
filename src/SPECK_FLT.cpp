@@ -134,9 +134,18 @@ auto sperr::SPECK_FLT::release_decoded_data() -> vecd_type&&
   return std::move(m_vals_d);
 }
 
-auto sperr::SPECK_FLT::release_hierarchy() -> std::vector<vecd_type>&&
+auto sperr::SPECK_FLT::release_hierarchy() -> std::vector<vecd_type>
 {
-  return std::move(m_hierarchy);
+  auto ret = std::vector<vecd_type>(m_hierarchy.size());
+  for (size_t i=0;i<ret.size();i++){
+    ret[i].resize(m_hierarchy[i].size());
+    for (size_t j=0;j<ret[i].size();j++){
+      ret[i][j] = m_hierarchy[i][j];
+    }
+    m_hierarchy[i].clear();
+  }
+  m_hierarchy.clear();
+  return ret;
 }
 
 auto sperr::SPECK_FLT::view_hierarchy() const -> const std::vector<vecd_type>&

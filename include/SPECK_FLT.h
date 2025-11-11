@@ -45,7 +45,7 @@ class SPECK_FLT {
   auto view_decoded_data() const -> const vecd_type&;
   auto view_hierarchy() const -> const std::vector<vecd_type>&;
   auto release_decoded_data() -> vecd_type&&;
-  auto release_hierarchy() -> std::vector<vecd_type>&&;
+  auto release_hierarchy() -> std::vector<vecd_type>;
 
   //
   // General configuration and info.

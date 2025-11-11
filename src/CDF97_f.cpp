@@ -687,6 +687,7 @@ void sperr::CDF97_F::m_scatter_odd(citd_type begin, citd_type end, itd_type dest
     *(dest + i * 2 + 1) = *begin;
     ++begin;
   }
+}
 
 auto sperr::CDF97_F::m_sub_slice(std::array<size_t, 2> subdims) const -> vecf_type
 {

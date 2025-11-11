@@ -178,7 +178,7 @@ void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecd_type>& h_d)
       auto& buf = h[*dyadic - lev];
       buf.resize(x * y * z);
       m_sub_volume({x, y, z},buf.data());
-      m_idwt3d_one_level(m_data_buf.data(), {x + xd, y + yd, z + zd});
+      m_idwt3d_one_level({x + xd, y + yd, z + zd});
     }
   }
   else

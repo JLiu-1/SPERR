@@ -1,5 +1,5 @@
 #include "CDF97_f.h"
-
+#include "Timer.h"
 #include <algorithm>
 #include <cassert>
 #include <numeric>  // std::accumulate()
@@ -496,21 +496,34 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-  
+  Timer timer(true);
   if (len_xyz[2] % 2 == 0) {  // Even length
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {
+        if(x==0 && y==0)
+          timer.begin();
         const size_t xy_offset = y * m_dims[0] + x;
         // Step 1
         for (size_t z = 0; z < len_xyz[2]; z++)
           m_qcc_buf[z] = m_data_buf[z * plane_size_xy + xy_offset];
+        if(x==0 && y==0){
+          timer.stop("to qcc buf");
+          timer.begin();
+        }
         // Step 2
         this->QccWAVCDF97AnalysisSymmetricEvenEven(m_qcc_buf.data(), len_xyz[2]);
+        if(x==0 && y==0){
+          timer.stop("qcc wave");
+          timer.begin();
+        }
         // Step 3
         m_gather_even(beg, beg2, beg2);
         // Step 4
         for (size_t z = 0; z < len_xyz[2]; z++)
           m_data_buf[z * plane_size_xy + xy_offset] = *(beg2 + z);
+        if(x==0 && y==0){
+          timer.stop("from qcc wave");
+        }
       }
     }
   }
@@ -685,7 +698,6 @@ void sperr::CDF97_F::m_sub_volume(dims_type subdims, itf_type dst) const
 //
 void sperr::CDF97_F::QccWAVCDF97AnalysisSymmetricEvenEven(float * signal, size_t signal_length)
 {
-  std::cout<<"float"<<std::endl;
   for (size_t i = 1; i < signal_length - 2; i += 2)
     signal[i] += ALPHA * (signal[i - 1] + signal[i + 1]);
 

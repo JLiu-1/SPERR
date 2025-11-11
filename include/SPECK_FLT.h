@@ -80,7 +80,7 @@ class SPECK_FLT {
   vecf_type m_vals_f;//new
   condi_type m_condi_bitstream;
   Bitmask m_sign_array;
-  std::vector<vecd_type> m_hierarchy;  // multi-resolution decoding
+  std::vector<vecf_type> m_hierarchy;  // multi-resolution decoding
 
   CDF97_F m_cdf;
   //CDF97_F m_cdf_f;

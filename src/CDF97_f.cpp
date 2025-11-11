@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include <iostream>
 template <typename T>
 auto sperr::CDF97_F::copy_data(const T* data, size_t len, dims_type dims) -> RTNType
 {
@@ -496,7 +496,7 @@ void sperr::CDF97_F::m_dwt3d_one_level(itf_type vol, std::array<size_t, 3> len_x
   // 2) use appropriate even/odd Qcc*** function to transform it
   // 3) gather coefficients from `m_qcc_buf` to the second half of `m_qcc_buf`
   // 4) put the Z column back to their locations as a Z column.
-
+  std::cout<<"float"<<std::endl;
   if (len_xyz[2] % 2 == 0) {  // Even length
     for (size_t y = 0; y < len_xyz[1]; y++) {
       for (size_t x = 0; x < len_xyz[0]; x++) {

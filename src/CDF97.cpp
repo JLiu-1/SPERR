@@ -402,7 +402,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
   // Note: the reason to process eight columns at a time is that a cache line
   // is usually 64 bytes, or 8 doubles. That means when you pay the cost to retrieve
   // one value from the Z column, its neighboring 7 values are available for free!
-
+  /*
   for (size_t y = 0; y < len_xyz[1]; y++) {
     for (size_t x = 0; x < len_xyz[0]; x += 8) {
       const size_t xy_offset = y * m_dims[0] + x;
@@ -425,7 +425,131 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
           m_data_buf[z * plane_size_xy + xy_offset + i] = m_slice_buf[z + i * col_len];
       }
     }
+  }*/
+
+
+
+  for (size_t z = 1; z+1 < len_xyz[2]; z+=2) {
+    auto offset_z = z * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += ALPHA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+      }
+    }
   }
+  if (len_xyz[2] % 2 == 0){
+    auto offset_z = (len_xyz[2]-1) * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += 2 * ALPHA * m_data_buf[offset-plane_size_xy]； 
+      }
+    }
+  }
+  for (size_t y = 0; y < len_xyz[1]; y++) {
+    auto offset_y = y * len_xyz[0] 
+    for (size_t x = 0; x < len_xyz[0]; x++) {
+        auto offset =  offset_y + x;
+        m_data_buf[offset] += 2 * BETA * m_data_buf[offset+plane_size_xy]； 
+    }
+  }
+
+  for (size_t z = 2; z+1 < len_xyz[2]; z+=2) {
+    auto offset_z = z * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += BETA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+      }
+    }
+  }
+
+  if (len_xyz[2] % 2 == 1){
+    auto offset_z = (len_xyz[2]-1) * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += 2 * BETA * m_data_buf[offset - plane_size_xy]； 
+      }
+    }
+  }
+
+  for (size_t z = 1; z+1 < len_xyz[2]; z+=2) {
+    auto offset_z = z * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += GAMMA * (m_data_buf[offset-plane_size_xy] + m_data_buf[offset+plane_size_xy])； 
+      }
+    }
+  }
+  if (len_xyz[2] % 2 == 0){
+    auto offset_z = (len_xyz[2]-1) * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += 2 * GAMMA * m_data_buf[offset-plane_size_xy];
+      }
+    }
+  }
+
+
+
+
+
+  for (size_t y = 0; y < len_xyz[1]; y++) {
+    auto offset_y = y * len_xyz[0] 
+    for (size_t x = 0; x < len_xyz[0]; x++) {
+        auto offset =  offset_y + x;
+        m_data_buf[offset] = EPSILON * (m_data_buf[offset] + 2.0 * DELTA * m_data_buf[offset+plane_size_xy]); 
+    }
+  }
+
+  for (size_t z = 2; z+1 < len_xyz[2]; z+=2) {
+    auto offset_z = z * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] +=EPSILON * (m_data_buf[offset] +  DELTA * (m_data_buf[offset-plane_size_xy]+m_data_buf[offset+plane_size_xy])); 
+      }
+    }
+  }
+
+  if (len_xyz[2] % 2 == 1){
+    auto offset_z = (len_xyz[2]-1) * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] += EPSILON * (m_data_buf[offset] + 2.0 * DELTA * m_data_buf[offset-plane_size_xy]); 
+      }
+    }
+  }
+
+  for (size_t z = 1; z< len_xyz[2]; z+=2) {
+    auto offset_z = z * plane_size_xy;
+    for (size_t y = 0; y < len_xyz[1]; y++) {
+      auto offset_y = y * len_xyz[0] 
+      for (size_t x = 0; x < len_xyz[0]; x++) {
+          auto offset = offset_z + offset_y + x;
+          m_data_buf[offset] *= -INV_EPSILON;
+      }
+    }
+  }
+
+
+
+
+
+
 }
 
 void sperr::CDF97::m_idwt3d_one_level(std::array<size_t, 3> len_xyz)

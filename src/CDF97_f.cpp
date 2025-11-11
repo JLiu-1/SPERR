@@ -168,7 +168,7 @@ void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecd_type>& h_d)
   h_d.resize(h.size());
   for(size_t i=0;i<h.size();i++){
     h_d[i].resize(h[i].size());
-    for(size_t j=0;j<ret[i].size();j++){
+    for(size_t j=0;j<h[i].size();j++){
       h_d[i][j]=h[i][j];
     }
     h[i].clear();

@@ -49,7 +49,7 @@ auto sperr::CDF97::take_data(vecd_type&& buf, dims_type dims) -> RTNType
   return RTNType::Good;
 }
 
-auto sperr::CDF97::view_data() const -> const vecf_type&
+auto sperr::CDF97::view_data() const -> const vecd_type&
 {
   return m_data_buf;
 }

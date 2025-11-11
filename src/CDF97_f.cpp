@@ -18,8 +18,9 @@ auto sperr::CDF97_F::copy_data(const T* data, size_t len, dims_type dims) -> RTN
   m_dims = dims;
 
   auto max_col = std::max(std::max(dims[0], dims[1]), dims[2]);
-  if (max_col * 2 > m_qcc_buf.size())
-    m_qcc_buf.resize(std::max(m_qcc_buf.size(), max_col) * 2);
+
+  if (max_col * 2 * m_x_bs * m_y_bs > m_qcc_buf.size())
+    m_qcc_buf.resize(std::max(m_qcc_buf.size(), max_col * m_x_bs * m_y_bs) * 2);
 
   auto max_slice = std::max(std::max(dims[0] * dims[1], dims[0] * dims[2]), dims[1] * dims[2]);
   if (max_slice > m_slice_buf.size())
@@ -46,8 +47,8 @@ auto sperr::CDF97_F::take_data(vecd_type&& buf, dims_type dims) -> RTNType
   m_dims = dims;
 
   auto max_col = std::max(std::max(dims[0], dims[1]), dims[2]);
-  if (max_col * 2 > m_qcc_buf.size())
-    m_qcc_buf.resize(std::max(m_qcc_buf.size(), max_col) * 2);
+  if (max_col * 2 * m_x_bs * m_y_bs > m_qcc_buf.size())
+    m_qcc_buf.resize(std::max(m_qcc_buf.size(), max_col * m_x_bs * m_y_bs) * 2);
 
   auto max_slice = std::max(std::max(dims[0] * dims[1], dims[0] * dims[2]), dims[1] * dims[2]);
   if (max_slice > m_slice_buf.size())

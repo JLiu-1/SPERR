@@ -45,7 +45,7 @@ auto sperr::CDF97_F::copy_data(const T* data, size_t len, dims_type dims) -> RTN
   return RTNType::Good;
 }
 template auto sperr::CDF97_F::copy_data(const float*, size_t, dims_type) -> RTNType;
-template auto sperr::CDF97_F::copy_data(const float*, size_t, dims_type) -> RTNType;
+template auto sperr::CDF97_F::copy_data(const double*, size_t, dims_type) -> RTNType;
 
 auto sperr::CDF97_F::take_data(vecd_type&& buf, dims_type dims) -> RTNType
 {
@@ -131,7 +131,7 @@ auto sperr::CDF97_F::idwt2d_multi_res() -> std::vector<vecd_type>
       auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
       auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
       ret.emplace_back(m_sub_slice({x, y}));
-      m_idwt2d_one_level(m_data_buf.copy_data(), {x + xd, y + yd});
+      m_idwt2d_one_level(m_data_buf.data(), {x + xd, y + yd});
     }
   }
 
@@ -177,8 +177,8 @@ void sperr::CDF97_F::idwt3d_multi_res(std::vector<vecd_type>& h_d)
       auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
       auto& buf = h[*dyadic - lev];
       buf.resize(x * y * z);
-      m_sub_volume({x, y, z}, buf.begin());
-      m_idwt3d_one_level(m_data_buf.begin(), {x + xd, y + yd, z + zd});
+      m_sub_volume({x, y, z},buf.data());
+      m_idwt3d_one_level(m_data_buf.data(), {x + xd, y + yd, z + zd});
     }
   }
   else

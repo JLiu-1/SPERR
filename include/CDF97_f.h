@@ -1,14 +1,14 @@
 //
 // Four member functions are heavily based on QccPack:
 //    http://qccpack.sourceforge.net/index.shtml
-//  - void QccWAVCDF97AnalysisSymmetricEvenEven(double* signal, size_t signal_length);
-//  - void QccWAVCDF97AnalysisSymmetricOddEven(double* signal, size_t signal_length);
-//  - void QccWAVCDF97SynthesisSymmetricEvenEven(double* signal, size_t signal_length);
-//  - void QccWAVCDF97SynthesisSymmetricOddEven(double* signal, size_t signal_length);
+//  - void QccWAVCDF97AnalysisSymmetricEvenEven(float* signal, size_t signal_length);
+//  - void QccWAVCDF97AnalysisSymmetricOddEven(float* signal, size_t signal_length);
+//  - void QccWAVCDF97SynthesisSymmetricEvenEven(float* signal, size_t signal_length);
+//  - void QccWAVCDF97SynthesisSymmetricOddEven(float* signal, size_t signal_length);
 //
 
-#ifndef CDF97_H
-#define CDF97_H
+#ifndef CDF97_F_H
+#define CDF97_F_H
 
 #include "sperr_helper.h"
 
@@ -16,12 +16,12 @@
 
 namespace sperr {
 
-class CDF97 {
+class CDF97_F {
  public:
   //
   // Destructor
   //
-  ~CDF97();
+  ~CDF97_F();
 
   //
   // Input
@@ -34,8 +34,8 @@ class CDF97 {
   //
   // Output
   //
-  auto view_data() const -> const vecd_type&;
-  auto release_data() -> vecd_type&&;
+  auto view_data() const -> const vecf_type&;
+  auto release_data() -> vecd_type;
   auto get_dims() const -> std::array<size_t, 3>;  // In 2D case, the 3rd value equals 1.
 
   //
@@ -67,13 +67,13 @@ class CDF97 {
   //
 
   // Multiple levels of 1D DWT/IDWT on a given array of length array_len.
-  void m_dwt1d(double* array, size_t array_len, size_t num_of_xforms);
-  void m_idwt1d(double* array, size_t array_len, size_t num_of_xforms);
+  void m_dwt1d(float* array, size_t array_len, size_t num_of_xforms);
+  void m_idwt1d(float* array, size_t array_len, size_t num_of_xforms);
 
   // Multiple levels of 2D DWT/IDWT on a given plane by repeatedly invoking
   // m_dwt2d_one_level(). The plane has a dimension (len_xy[0], len_xy[1]).
-  void m_dwt2d(double* plane, std::array<size_t, 2> len_xy, size_t num_of_xforms);
-  void m_idwt2d(double* plane, std::array<size_t, 2> len_xy, size_t num_of_xforms);
+  void m_dwt2d(float* plane, std::array<size_t, 2> len_xy, size_t num_of_xforms);
+  void m_idwt2d(float* plane, std::array<size_t, 2> len_xy, size_t num_of_xforms);
 
   // Perform one level of interleaved 3D dwt/idwt on a given volume (m_dims),
   // specifically on its top left (len_xyz) subset.
@@ -82,14 +82,14 @@ class CDF97 {
 
   // Perform one level of 2D dwt/idwt on a given plane (m_dims),
   // specifically on its top left (len_xy) subset.
-  void m_dwt2d_one_level(double* plane, std::array<size_t, 2> len_xy);
-  void m_idwt2d_one_level(double* plane, std::array<size_t, 2> len_xy);
+  void m_dwt2d_one_level(float* plane, std::array<size_t, 2> len_xy);
+  void m_idwt2d_one_level(float* plane, std::array<size_t, 2> len_xy);
 
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Interleave low and high pass elements to be at even and odd positions of the dest array.
   // Note: sufficient memory space should be allocated by the caller.
-  void m_gather(const double* begin, size_t len, double* dest) const;
-  void m_scatter(const double* begin, size_t len, double* dest) const;
+  void m_gather(const float* begin, size_t len, float* dest) const;
+  void m_scatter(const float* begin, size_t len, float* dest) const;
 
   // Two flavors of 3D transforms.
   // They should be invoked by the `dwt3d()` and `idwt3d()` public methods, not users, though.
@@ -101,19 +101,19 @@ class CDF97 {
   // Extract a sub-slice/sub-volume starting with the same origin of the full slice/volume.
   // It is UB if `subdims` exceeds the full dimension (`m_dims`).
   // It is UB if `dst` does not point to a big enough space.
-  auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecd_type;
-  void m_sub_volume(dims_type subdims, double* dst) const;
+  auto m_sub_slice(std::array<size_t, 2> subdims) const -> vecf_type;
+  void m_sub_volume(dims_type subdims, float* dst) const;
 
   //
   // Methods from QccPack with slight changes to combine the even and odd length cases.
   //
-  void QccWAVCDF97AnalysisSymmetric(double* signal, size_t signal_length);
-  void QccWAVCDF97SynthesisSymmetric(double* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetric(float* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetric(float* signal, size_t signal_length);
 
   //
   // Private data members
   //
-  vecd_type m_data_buf;          // Holds the entire input data.
+  vecf_type m_data_buf;          // Holds the entire input data.
   dims_type m_dims = {0, 0, 0};  // Dimension of the data volume
 
   size_t m_x_bs = 10;
@@ -121,7 +121,7 @@ class CDF97 {
 
   // Temporary buffers that are big enough for any 1D column or any 2D slice.
   vecd_type m_slice_buf;
-  double* m_aligned_buf = nullptr;
+  float* m_aligned_buf = nullptr;
   size_t m_aligned_buf_bytes = 0;  // num. of bytes
 
   //

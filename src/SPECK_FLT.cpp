@@ -680,6 +680,7 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   std::cout<<"d1"<<std::endl;
   m_adaptive_inv_quantize();
   std::cout<<"d2"<<std::endl;
+  std::cout<<m_vals_d.size()<<std::endl;
   // Step 3: Inverse wavelet transform
   auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)

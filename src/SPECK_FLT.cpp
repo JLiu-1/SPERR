@@ -486,7 +486,7 @@ void sperr::SPECK_FLT::m_adaptive_inv_quantize()
   }
 }, m_vals_ui);
 
-  m_vals_d = m_cdf.quantize_3D_inv(m_vals_ui,m_q);
+  m_vals_d = m_cdf.quantize_3D_inv(quantized_data,m_q);
 
     auto bits_x64 = m_vals_d.size() - m_vals_d.size() % 64;
 

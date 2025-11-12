@@ -13,6 +13,7 @@
 #include "sperr_helper.h"
 
 #include <cmath>
+#include <variant>
 
 namespace sperr {
 

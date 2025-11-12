@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include <iostream>
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
@@ -180,6 +180,8 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
   m_quantized_data.resize(vals_d.size());
   auto num_xforms = std::min(xy,z);
 
+  std::cout<<m_quantized_data.size()<<" "<<num_xforms<<" "<<q<<std::endl;
+
   std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
   auto plane_size_xy = m_dims[0] * m_dims[1];
@@ -188,7 +190,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
-
+    std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
     for (size_t i = 0; i < last_z; i++){
       for (size_t j = 0; j < last_y; j++){
         for (size_t k = 0; k < last_x; k++){

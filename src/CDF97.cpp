@@ -218,7 +218,7 @@ void sperr::CDF97::quantize_3D(double q)
   }
 }
 
-vecd_type sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &quantized_data, std::double q)
+vecd_type sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &quantized_data, double q)
 {
 
   auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));

@@ -251,7 +251,7 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &q
             continue;
           
           size_t offset = plane_size_xy * i + m_dims[0] * j + k;
-          std::cout<<quantized_data[offset]<<std::endl;
+          //std::cout<<quantized_data[offset]<<std::endl;
           ret[offset] = static_cast<double>(quantized_data[offset]) * cur_q;
 
         }
@@ -270,7 +270,7 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &q
 
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
         std::cout<<offset<<std::endl;
-        ret[offset] = static_cast<double>(m_quantized_data[offset]) * cur_q;
+        ret[offset] = static_cast<double>(quantized_data[offset]) * cur_q;
 
       }
     }

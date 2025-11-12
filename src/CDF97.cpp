@@ -172,12 +172,12 @@ void sperr::CDF97::idwt3d_multi_res(std::vector<vecd_type>& h)
     m_idwt3d_wavelet_packet();
 }
 
-void sperr::CDF97::quantize_3D(double q)
+void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
 {
 
   auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));
   auto z = sperr::num_of_xforms(m_dims[2]);
-  m_quantized_data.resize(m_data_buf.size());
+  m_quantized_data.resize(vals_d.size());
   auto num_xforms = std::min(xy,z);
 
   std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
@@ -195,7 +195,7 @@ void sperr::CDF97::quantize_3D(double q)
           if(i < z && j < y && k < x)
             continue;
           size_t offset = plane_size_xy * i + m_dims[0] * j + k;
-          m_quantized_data [offset] = m_data_buf[offset] / cur_q;
+          m_quantized_data [offset] = vals_d[offset] / cur_q;
 
         }
       }

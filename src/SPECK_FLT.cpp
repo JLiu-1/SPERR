@@ -390,7 +390,7 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
 
   // Find the biggest floating point value, then get its quantized integer.
   std::cout<<"q1"<<std::endl;
-  m_cdf.quantize_3D(m_q);
+  m_cdf.quantize_3D(m_vals_d,m_q);
   std::cout<<"q2"<<std::endl;
   auto quantized_data = m_cdf.release_quantized_data();
   auto maxll = *std::max_element(quantized_data.cbegin(), quantized_data.cend(),

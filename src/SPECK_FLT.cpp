@@ -427,7 +427,7 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
         }
 
         // Process the remaining bits.
-        for (size_t i = bits_x64; i < vals_d.size(); i++) {
+        for (size_t i = bits_x64; i < vals_q.size(); i++) {
           auto ll = std::llrint(vals_q[i]);
           signs.wbit(i, (ll >= 0));
           vec[i] = std::abs(ll);
@@ -440,7 +440,7 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
 
 
 
-auto sperr::SPECK_FLT::m_midtread_inv_quantize() -> RTNType
+void sperr::SPECK_FLT::m_midtread_inv_quantize() 
 {
   assert(m_sign_array.size() == std::visit([](auto&& vec) { return vec.size(); }, m_vals_ui));
   assert(m_q > 0.0);

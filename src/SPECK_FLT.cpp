@@ -675,14 +675,13 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   std::visit([&vec = m_vals_ui](auto&& dec) { vec = dec->release_coeffs(); }, m_decoder);
   m_sign_array = std::visit([](auto&& dec) { return dec->release_signs(); }, m_decoder);
 
-  std::cout<<m_sign_array.size()<<std::endl;
 
   // Step 2: Inverse quantization
   //m_midtread_inv_quantize();
   std::cout<<"d1"<<std::endl;
+  m_cdf.set_dims(m_dims);
   m_adaptive_inv_quantize();
   std::cout<<"d2"<<std::endl;
-  std::cout<<m_vals_d.size()<<std::endl;
   // Step 3: Inverse wavelet transform
   auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)

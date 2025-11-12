@@ -92,6 +92,11 @@ auto sperr::CDF97::get_dims() const -> std::array<size_t, 3>
   return m_dims;
 }
 
+void sperr::CDF97::set_dims(const std::array<size_t, 3> dims) 
+{
+  m_dims = dims;
+}
+
 void sperr::CDF97::dwt1d()
 {
   auto num_xforms = sperr::num_of_xforms(m_dims[0]);

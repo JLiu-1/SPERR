@@ -573,14 +573,11 @@ FIXED_RATE_HIGH_PREC_LABEL:
     //m_midtread_inv_quantize();
     m_adaptive_inv_quantize();
     std::cout<<"p3"<<std::endl;
-    std::cout<<m_vals_d.size()<<std::endl;
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
-    std::cout<<"p4"<<std::endl;
     if (rtn != RTNType::Good)
       return rtn;
     m_inverse_wavelet_xform(false);  // No multi-resolution needed!
     m_vals_d = m_cdf.release_data();
-    std::cout<<"p5"<<std::endl;
     auto LOS = std::vector<Outlier>();
     LOS.reserve(0.04 * total_vals);  // Reserve space to hold about 4% of total values.
     for (size_t i = 0; i < total_vals; i++) {
@@ -680,14 +677,16 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
 
   // Step 2: Inverse quantization
   //m_midtread_inv_quantize();
+  std::cout<<"d1"<<std::endl;
   m_adaptive_inv_quantize();
+  std::cout<<"d2"<<std::endl;
   // Step 3: Inverse wavelet transform
   auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)
     return rtn;
   m_inverse_wavelet_xform(multi_res);
   m_vals_d = m_cdf.release_data();
-
+  std::cout<<"d3"<<std::endl;
   // Side step: outlier correction, if needed
   if (m_has_outlier) {
     m_out_coder.set_length(m_dims[0] * m_dims[1] * m_dims[2]);

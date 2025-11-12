@@ -198,7 +198,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     x = (x-1)/2+1;
     y = (y-1)/2+1;
     z = (y-1)/2+1;
-    //std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
+    std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
     for (size_t i = 0; i < last_z; i++){
       for (size_t j = 0; j < last_y; j++){
         for (size_t k = 0; k < last_x; k++){

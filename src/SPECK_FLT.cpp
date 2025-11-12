@@ -490,7 +490,7 @@ void sperr::SPECK_FLT::m_adaptive_inv_quantize()
 
     // Process the remaining bits.
     for (size_t i = bits_x64; i < m_vals_d.size(); i++)
-      m_vals_d[i] = static_cast<double>(m_vals_d[i]) * tmpd[signs.rbit(i)];
+      m_vals_d[i] = static_cast<double>(m_vals_d[i]) * tmpd[m_sign_array.rbit(i)];
     
      
 }

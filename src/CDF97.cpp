@@ -190,6 +190,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
  
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
   auto plane_size_xy = m_dims[0] * m_dims[1];
+  size_t counter;
   for (size_t lev = 0; lev < num_xforms; lev++) {
     auto cur_q = q * m_q_hierarchy [num_xforms - lev];
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
@@ -206,6 +207,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
             continue;
           size_t offset = plane_size_xy * i + m_dims[0] * j + k;
           m_quantized_data [offset] = vals_d[offset] / cur_q;
+          counter++;
 
         }
       }
@@ -222,10 +224,13 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
 
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
         m_quantized_data [offset] = vals_d[offset] / cur_q;
+        counter++;
+
 
       }
     }
   }
+  std::cout<<counter<<std::endl;
 }
 
 std::vector<double> sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &quantized_data, double q)

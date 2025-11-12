@@ -38,8 +38,11 @@ class CDF97 {
   auto release_data() -> vecd_type&&;
   auto release_quantized_data() -> std::vector<int64_t>&&;
   auto get_dims() const -> std::array<size_t, 3>;  // In 2D case, the 3rd value equals 1.
-  void quantize_3D(double q);
-  vecd_type quantize_3D_inv(const std::vector<int64_t> &quantized_data, double q);
+  void quantize_3D(double );
+  vecd_type quantize_3D_inv(const std::variant<std::vector<uint8_t>,
+               std::vector<uint16_t>,
+               std::vector<uint32_t>,
+               std::vector<uint64_t>> &, double );
 
   //
   // Action items

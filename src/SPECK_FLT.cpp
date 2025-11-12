@@ -476,24 +476,23 @@ void sperr::SPECK_FLT::m_adaptive_inv_quantize()
   const auto tmpd = std::array<double, 2>{-1.0, 1.0};
   m_vals_d = m_cdf.quantize_3D_inv(m_vals_ui,m_q);
 
-  std::visit(
-      [&signs = m_sign_array, tmpd](auto&& vec) {
-        auto bits_x64 = vec.size() - vec.size() % 64;
+ 
+    auto bits_x64 = m_vals_d.size() - m_vals_d.size() % 64;
 
-        // Process 64 values at a time.
-        for (size_t i = 0; i < bits_x64; i += 64) {
-          const auto bits64 = signs.rlong(i);
-          for (size_t j = 0; j < 64; j++) {
-            auto bit = (bits64 >> j) & uint64_t{1};
-            vec[i + j] *=  tmpd[bit];
-          }
-        }
+    // Process 64 values at a time.
+    for (size_t i = 0; i < bits_x64; i += 64) {
+      const auto bits64 = signs.rlong(i);
+      for (size_t j = 0; j < 64; j++) {
+        auto bit = (bits64 >> j) & uint64_t{1};
+        m_vals_d[i + j] *=  tmpd[bit];
+      }
+    }
 
-        // Process the remaining bits.
-        for (size_t i = bits_x64; i < vals_d.size(); i++)
-          vec[i] = static_cast<double>(vec[i]) * tmpd[signs.rbit(i)];
-      },
-      m_vals_d);
+    // Process the remaining bits.
+    for (size_t i = bits_x64; i < m_vals_d.size(); i++)
+      m_vals_d[i] = static_cast<double>(m_vals_d[i]) * tmpd[signs.rbit(i)];
+    
+     
 }
 
 auto sperr::SPECK_FLT::compress() -> RTNType

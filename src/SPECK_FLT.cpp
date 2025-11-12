@@ -481,7 +481,7 @@ void sperr::SPECK_FLT::m_adaptive_inv_quantize()
 
     // Process 64 values at a time.
     for (size_t i = 0; i < bits_x64; i += 64) {
-      const auto bits64 = signs.rlong(i);
+      const auto bits64 = m_sign_array.rlong(i);
       for (size_t j = 0; j < 64; j++) {
         auto bit = (bits64 >> j) & uint64_t{1};
         m_vals_d[i + j] *=  tmpd[bit];

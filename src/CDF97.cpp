@@ -211,10 +211,11 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     
   }
   auto cur_q = q_hierarchy[0];
-
+  std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
   for (size_t i = 0; i < last_z; i++){
     for (size_t j = 0; j < last_y; j++){
       for (size_t k = 0; k < last_x; k++){
+
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
         m_quantized_data [offset] = m_data_buf[offset] / cur_q;
 

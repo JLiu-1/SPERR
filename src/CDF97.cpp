@@ -252,6 +252,7 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::variant<std::vector
         for (size_t k = 0; k < last_x; k++){
           if(i < z && j < y && k < x)
             continue;
+          std::cout<<offset<<std::endl;
           size_t offset = plane_size_xy * i + m_dims[0] * j + k;
           ret[offset] = static_cast<double>(m_quantized_data[offset]) * cur_q;
 
@@ -268,6 +269,7 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::variant<std::vector
   for (size_t i = 0; i < last_z; i++){
     for (size_t j = 0; j < last_y; j++){
       for (size_t k = 0; k < last_x; k++){
+        std::cout<<offset<<std::endl;
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
         ret[offset] = static_cast<double>(m_quantized_data[offset]) * cur_q;
 

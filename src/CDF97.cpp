@@ -190,7 +190,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
  
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
   auto plane_size_xy = m_dims[0] * m_dims[1];
-  size_t counter;
+  size_t counter=0;
   for (size_t lev = 0; lev < num_xforms; lev++) {
     auto cur_q = q * m_q_hierarchy [num_xforms - lev];
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);

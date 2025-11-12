@@ -217,6 +217,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
       for (size_t k = 0; k < last_x; k++){
 
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
+        std::cout<<offset<<std::endl;
         m_quantized_data [offset] = m_data_buf[offset] / cur_q;
 
       }

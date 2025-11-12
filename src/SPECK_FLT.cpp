@@ -675,6 +675,8 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   std::visit([&vec = m_vals_ui](auto&& dec) { vec = dec->release_coeffs(); }, m_decoder);
   m_sign_array = std::visit([](auto&& dec) { return dec->release_signs(); }, m_decoder);
 
+  std::cout<<m_sign_array.size()<<std::endl;
+
   // Step 2: Inverse quantization
   //m_midtread_inv_quantize();
   std::cout<<"d1"<<std::endl;

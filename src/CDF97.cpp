@@ -217,6 +217,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     last_z = z;
     
   }
+  std::cout<<counter<<std::endl;
   auto cur_q = q * m_q_hierarchy[0];
   for (size_t i = 0; i < last_z; i++){
     for (size_t j = 0; j < last_y; j++){

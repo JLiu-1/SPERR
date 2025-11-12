@@ -243,6 +243,9 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::variant<std::vector
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
+    x = (x-1)/2+1;
+    y = (y-1)/2+1;
+    z = (y-1)/2+1;
 
     for (size_t i = 0; i < last_z; i++){
       for (size_t j = 0; j < last_y; j++){

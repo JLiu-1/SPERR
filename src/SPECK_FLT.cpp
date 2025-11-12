@@ -450,6 +450,8 @@ void sperr::SPECK_FLT::m_midtread_inv_quantize()
   const auto tmpd = std::array<double, 2>{-1.0, 1.0};
   m_vals_d.resize(m_sign_array.size());
 
+
+   
   std::visit(
       [&vals_d = m_vals_d, &signs = m_sign_array, q = m_q, tmpd](auto&& vec) {
         auto bits_x64 = vals_d.size() - vals_d.size() % 64;
@@ -476,9 +478,16 @@ void sperr::SPECK_FLT::m_adaptive_inv_quantize()
   assert(m_q > 0.0);
 
   const auto tmpd = std::array<double, 2>{-1.0, 1.0};
+  std::vector<uint64_t> quantized_data;
+
+  std::visit([&qdata = quantized_data](auto&&vec ){
+  for (auto& e : vec) {
+    qdata.push_back(e);
+  }
+}, m_vals_ui);
+
   m_vals_d = m_cdf.quantize_3D_inv(m_vals_ui,m_q);
 
- 
     auto bits_x64 = m_vals_d.size() - m_vals_d.size() % 64;
 
     // Process 64 values at a time.

@@ -190,6 +190,9 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
+    x = (x-1)/2+1;
+    y = (y-1)/2+1;
+    z = (y-1)/2+1;
     std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
     for (size_t i = 0; i < last_z; i++){
       for (size_t j = 0; j < last_y; j++){

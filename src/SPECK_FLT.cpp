@@ -551,7 +551,9 @@ FIXED_RATE_HIGH_PREC_LABEL:
   // Step 3: quantize floating-point coefficients to integers.
   // This step also establishes the integer length used by the encoder/decoder.
   //auto rtn = m_midtread_quantize();
+  std::cout<<"p1"<<std::endl;
   auto rtn = m_adaptive_quantize();
+  std::cout<<"p2"<<std::endl;
   if (rtn != RTNType::Good)
     return rtn;
 
@@ -559,6 +561,7 @@ FIXED_RATE_HIGH_PREC_LABEL:
   if (m_mode == CompMode::PWE) {
     //m_midtread_inv_quantize();
     m_adaptive_inv_quantize();
+    std::cout<<"p3"<<std::endl;
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;

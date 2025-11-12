@@ -321,7 +321,7 @@ auto sperr::SPECK_FLT::m_midtread_quantize() -> RTNType
   std::fesetround(FE_TONEAREST);
   assert(FE_TONEAREST == std::fegetround());
   assert(FLT_ROUNDS == 1);
-
+  
   // Find the biggest floating point value, then get its quantized integer.
   auto maxd = *std::max_element(m_vals_d.cbegin(), m_vals_d.cend(),
                                 [](auto a, auto b) { return std::abs(a) < std::abs(b); });
@@ -389,12 +389,14 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
     return RTNType::FE_Invalid;
 
   // Find the biggest floating point value, then get its quantized integer.
+  std::cout<<"q1"<<std::endl;
   m_cdf.quantize_3D(m_q);
+  std::cout<<"q2"<<std::endl;
   auto quantized_data = m_cdf.release_quantized_data();
   auto maxll = *std::max_element(quantized_data.cbegin(), quantized_data.cend(),
                                 [](auto a, auto b) { return std::abs(a) < std::abs(b); });
  
-
+  std::cout<<"q3"<<std::endl;
   // Decide integer length, and instantiate `m_vals_ui`.
   if (maxll <= std::numeric_limits<uint8_t>::max())
     m_uint_flag = UINTType::UINT8;
@@ -406,7 +408,7 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
     m_uint_flag = UINTType::UINT64;
 
   m_instantiate_int_vec();
-
+   std::cout<<"q4"<<std::endl;
   const auto total_vals = m_vals_d.size();
   std::visit([total_vals](auto&& vec) { vec.resize(total_vals); }, m_vals_ui);
   m_sign_array.resize(total_vals);
@@ -434,7 +436,7 @@ auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
         }
       },
       m_vals_ui);
-
+  std::cout<<"q5"<<std::endl;
   return RTNType::Good;
 }
 

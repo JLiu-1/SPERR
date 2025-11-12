@@ -180,7 +180,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
   m_quantized_data.resize(vals_d.size());
   auto num_xforms = std::min(xy,z);
 
-  std::cout<<m_quantized_data.size()<<" "<<num_xforms<<" "<<q<<std::endl;
+ // std::cout<<m_quantized_data.size()<<" "<<num_xforms<<" "<<q<<std::endl;
 
   std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
@@ -193,7 +193,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     x = (x-1)/2+1;
     y = (y-1)/2+1;
     z = (y-1)/2+1;
-    std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
+    //std::cout<<x<<" "<<y<<" "<<z<<" "<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
     for (size_t i = 0; i < last_z; i++){
       for (size_t j = 0; j < last_y; j++){
         for (size_t k = 0; k < last_x; k++){
@@ -217,8 +217,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
       for (size_t k = 0; k < last_x; k++){
 
         size_t offset = plane_size_xy * i + m_dims[0] * j + k;
-        std::cout<<offset<<std::endl;
-        m_quantized_data [offset] = m_data_buf[offset] / cur_q;
+        m_quantized_data [offset] = vals_d[offset] / cur_q;
 
       }
     }

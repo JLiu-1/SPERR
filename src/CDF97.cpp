@@ -187,11 +187,11 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
 
  // std::cout<<m_quantized_data.size()<<" "<<num_xforms<<" "<<q<<std::endl;
 
-  std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
+ 
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
   auto plane_size_xy = m_dims[0] * m_dims[1];
   for (size_t lev = 0; lev < num_xforms; lev++) {
-    auto cur_q = q_hierarchy [num_xforms - lev];
+    auto cur_q = q * m_q_hierarchy [num_xforms - lev];
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
@@ -215,8 +215,7 @@ void sperr::CDF97::quantize_3D(const std::vector<double> & vals_d, double q)
     last_z = z;
     
   }
-  auto cur_q = q_hierarchy[0];
-  std::cout<<last_x<<" "<<last_y<<" "<<last_z<<" "<<cur_q<<std::endl;
+  auto cur_q = q * m_q_hierarchy[0];
   for (size_t i = 0; i < last_z; i++){
     for (size_t j = 0; j < last_y; j++){
       for (size_t k = 0; k < last_x; k++){
@@ -237,11 +236,10 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &q
   std::vector<double> ret(m_dims[0]*m_dims[1]*m_dims[2]);
   auto num_xforms = std::min(xy,z);
 
-  std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
   size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
   auto plane_size_xy = m_dims[0] * m_dims[1];
   for (size_t lev = 0; lev < num_xforms; lev++) {
-    auto cur_q = q_hierarchy [num_xforms - lev];
+    auto cur_q = q * m_q_hierarchy [num_xforms - lev];
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
@@ -267,7 +265,7 @@ std::vector<double> sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &q
     last_z = z;
     
   }
-  auto cur_q = q_hierarchy[0];
+  auto cur_q = q * m_q_hierarchy[0];
 
   for (size_t i = 0; i < last_z; i++){
     for (size_t j = 0; j < last_y; j++){

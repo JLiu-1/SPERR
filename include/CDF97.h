@@ -123,6 +123,8 @@ class CDF97 {
   dims_type m_dims = {0, 0, 0};  // Dimension of the data volume
   std::vector<int64_t> m_quantized_data;
 
+  std::array<double,7> m_q_hierarchy = {1.0, 1.25, 1.5, 1.75, 2.0 , 2.0, 2.0};//todo: optimize
+
   // Temporary buffers that are big enough for any 1D column or any 2D slice.
   vecd_type m_slice_buf;
   double* m_aligned_buf = nullptr;

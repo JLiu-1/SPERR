@@ -36,7 +36,10 @@ class CDF97 {
   //
   auto view_data() const -> const vecd_type&;
   auto release_data() -> vecd_type&&;
+  auto release_quantized_data() -> std::vector<int64_t>&&;
   auto get_dims() const -> std::array<size_t, 3>;  // In 2D case, the 3rd value equals 1.
+  void quantize_3d(double q);
+  vecd_type quantize_3D_inv(const std::vector<int64_t> &quantized_data, std::double q);
 
   //
   // Action items
@@ -115,6 +118,7 @@ class CDF97 {
   //
   vecd_type m_data_buf;          // Holds the entire input data.
   dims_type m_dims = {0, 0, 0};  // Dimension of the data volume
+  std::vector<int64_t> m_quantized_data;
 
   // Temporary buffers that are big enough for any 1D column or any 2D slice.
   vecd_type m_slice_buf;

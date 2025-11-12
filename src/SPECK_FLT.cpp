@@ -375,7 +375,72 @@ auto sperr::SPECK_FLT::m_midtread_quantize() -> RTNType
   return RTNType::Good;
 }
 
-void sperr::SPECK_FLT::m_midtread_inv_quantize()
+auto sperr::SPECK_FLT::m_adaptive_quantize() -> RTNType
+{
+  // Make sure that the rounding mode is what we wanted.
+  // Here are two methods of querying the current rounding mode; not sure
+  //    how they compare, so test both of them for now.
+  std::fesetround(FE_TONEAREST);
+  assert(FE_TONEAREST == std::fegetround());
+  assert(FLT_ROUNDS == 1);
+   std::feclearexcept(FE_INVALID);
+  assert(m_q > 0.0);
+  if (std::fetestexcept(FE_INVALID))
+    return RTNType::FE_Invalid;
+
+  // Find the biggest floating point value, then get its quantized integer.
+  m_cdf.quantize_3D(m_q);
+  auto quantized_data = m_cdf.release_quantized_data();
+  auto maxll = *std::max_element(quantized_data.cbegin(), quantized_data.cend(),
+                                [](auto a, auto b) { return std::abs(a) < std::abs(b); });
+ 
+
+  // Decide integer length, and instantiate `m_vals_ui`.
+  if (maxll <= std::numeric_limits<uint8_t>::max())
+    m_uint_flag = UINTType::UINT8;
+  else if (maxll <= std::numeric_limits<uint16_t>::max())
+    m_uint_flag = UINTType::UINT16;
+  else if (maxll <= std::numeric_limits<uint32_t>::max())
+    m_uint_flag = UINTType::UINT32;
+  else
+    m_uint_flag = UINTType::UINT64;
+
+  m_instantiate_int_vec();
+
+  const auto total_vals = m_vals_d.size();
+  std::visit([total_vals](auto&& vec) { vec.resize(total_vals); }, m_vals_ui);
+  m_sign_array.resize(total_vals);
+
+  std::visit(
+      [&vals_q = quantized_data, &signs = m_sign_array](auto&& vec) {
+        auto bits_x64 = vals_q.size() - vals_q.size() % 64;
+
+        // Process 64 values at a time.
+        for (size_t i = 0; i < bits_x64; i += 64) {
+          auto bits64 = uint64_t{0};
+          for (size_t j = 0; j < 64; j++) {
+            auto ll = std::llrint(vals_q[i + j]);
+            bits64 |= uint64_t{ll >= 0} << j;
+            vec[i + j] = std::abs(ll);
+          }
+          signs.wlong(i, bits64);
+        }
+
+        // Process the remaining bits.
+        for (size_t i = bits_x64; i < vals_d.size(); i++) {
+          auto ll = std::llrint(vals_q[i]);
+          signs.wbit(i, (ll >= 0));
+          vec[i] = std::abs(ll);
+        }
+      },
+      m_vals_ui);
+
+  return RTNType::Good;
+}
+
+
+
+auto sperr::SPECK_FLT::m_midtread_inv_quantize() -> RTNType
 {
   assert(m_sign_array.size() == std::visit([](auto&& vec) { return vec.size(); }, m_vals_ui));
   assert(m_q > 0.0);
@@ -401,6 +466,34 @@ void sperr::SPECK_FLT::m_midtread_inv_quantize()
           vals_d[i] = q * static_cast<double>(vec[i]) * tmpd[signs.rbit(i)];
       },
       m_vals_ui);
+}
+
+void sperr::SPECK_FLT::m_adaptive_inv_quantize() 
+{
+  assert(m_sign_array.size() == std::visit([](auto&& vec) { return vec.size(); }, m_vals_ui));
+  assert(m_q > 0.0);
+
+  const auto tmpd = std::array<double, 2>{-1.0, 1.0};
+  m_vals_d = m_cdf.quantize_3D_inv(m_vals_ui,m_q);
+
+  std::visit(
+      [&signs = m_sign_array, tmpd](auto&& vec) {
+        auto bits_x64 = vec.size() - vec.size() % 64;
+
+        // Process 64 values at a time.
+        for (size_t i = 0; i < bits_x64; i += 64) {
+          const auto bits64 = signs.rlong(i);
+          for (size_t j = 0; j < 64; j++) {
+            auto bit = (bits64 >> j) & uint64_t{1};
+            vec[i + j] *=  tmpd[bit];
+          }
+        }
+
+        // Process the remaining bits.
+        for (size_t i = bits_x64; i < vals_d.size(); i++)
+          vec[i] = static_cast<double>(vec[i]) * tmpd[signs.rbit(i)];
+      },
+      m_vals_d);
 }
 
 auto sperr::SPECK_FLT::compress() -> RTNType
@@ -458,13 +551,15 @@ FIXED_RATE_HIGH_PREC_LABEL:
 
   // Step 3: quantize floating-point coefficients to integers.
   // This step also establishes the integer length used by the encoder/decoder.
-  auto rtn = m_midtread_quantize();
+  //auto rtn = m_midtread_quantize();
+  auto rtn = m_adaptive_quantize();
   if (rtn != RTNType::Good)
     return rtn;
 
   // CompMode::PWE only: perform outlier coding: find out all the outliers, and encode them!
   if (m_mode == CompMode::PWE) {
-    m_midtread_inv_quantize();
+    //m_midtread_inv_quantize();
+    m_adaptive_inv_quantize();
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;
@@ -568,8 +663,8 @@ auto sperr::SPECK_FLT::decompress(bool multi_res) -> RTNType
   m_sign_array = std::visit([](auto&& dec) { return dec->release_signs(); }, m_decoder);
 
   // Step 2: Inverse quantization
-  m_midtread_inv_quantize();
-
+  //m_midtread_inv_quantize();
+  m_adaptive_inv_quantize();
   // Step 3: Inverse wavelet transform
   auto rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
   if (rtn != RTNType::Good)

@@ -112,6 +112,8 @@ class SPECK_FLT {
   //    Inverse quantization reads from `m_vals_ui` and `m_sign_array`, and writes to `m_vals_d`.
   auto m_midtread_quantize() -> RTNType;
   void m_midtread_inv_quantize();
+  auto m_adaptive_quantize() -> RTNType;
+  void m_adaptive_inv_quantize();
 
   // Estimate MSE assuming midtread quantization strategy.
   auto m_estimate_mse_midtread(double q) const -> double;

@@ -82,6 +82,11 @@ auto sperr::CDF97::release_data() -> vecd_type&&
   return std::move(m_data_buf);
 }
 
+auto sperr::CDF97::release_quantized_data() -> std::vector<int64_t>&&
+{
+  return std::move(m_quantized_data);
+}
+
 auto sperr::CDF97::get_dims() const -> std::array<size_t, 3>
 {
   return m_dims;
@@ -166,6 +171,101 @@ void sperr::CDF97::idwt3d_multi_res(std::vector<vecd_type>& h)
   else
     m_idwt3d_wavelet_packet();
 }
+
+void sperr::CDF97::quantize_3D(double q)
+{
+
+  auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));
+  auto z = sperr::num_of_xforms(m_dims[2]);
+  m_quantized_data.resize(m_data_buf.size());
+  auto num_xforms = std::min(xy,z);
+
+  std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
+  size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
+  auto plane_size_xy = m_dims[0] * m_dims[1];
+  for (size_t lev = 0; lev < num_xforms; lev++) {
+    auto cur_q = q_hierarchy [num_xforms - lev];
+    auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
+    auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
+    auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
+
+    for (size_t i = 0; i < last_z; i++){
+      for (size_t j = 0; j < last_y; j++){
+        for (size_t k = 0; k < last_x; k++){
+          if(i < z && j < y && k < x)
+            continue;
+          size_t offset = plane_size_xy * i + m_dims[0] * j + k;
+          m_quantized_data [offset] = m_data_buf[offset] / cur_q;
+
+        }
+      }
+    }
+    last_x = x;
+    last_y = y;
+    last_z = z;
+    
+  }
+  auto cur_q = q_hierarchy[0];
+
+  for (size_t i = 0; i < last_z; i++){
+    for (size_t j = 0; j < last_y; j++){
+      for (size_t k = 0; k < last_x; k++){
+        size_t offset = plane_size_xy * i + m_dims[0] * j + k;
+        m_quantized_data [offset] = m_data_buf[offset] / cur_q;
+
+      }
+    }
+  }
+}
+
+vecd_type sperr::CDF97::quantize_3D_inv(const std::vector<uint64_t> &quantized_data, std::double q)
+{
+
+  auto xy = sperr::num_of_xforms(std::min(m_dims[0], m_dims[1]));
+  auto z = sperr::num_of_xforms(m_dims[2]);
+  vecd_type ret(quantized_data.size());
+  auto num_xforms = std::min(xy,z);
+
+  std::array<double,7> q_hierarchy = {q, 1.25 * q, 1.5 *q, 1.75 * q, 2.0 * q, 2.25 *q, 2.5 *q};//todo: optimize
+  size_t last_x = m_dims[0], last_y = m_dims[1], last_z = m_dims[2];
+  auto plane_size_xy = m_dims[0] * m_dims[1];
+  for (size_t lev = 0; lev < num_xforms; lev++) {
+    auto cur_q = q_hierarchy [num_xforms - lev];
+    auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev);
+    auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev);
+    auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev);
+
+    for (size_t i = 0; i < last_z; i++){
+      for (size_t j = 0; j < last_y; j++){
+        for (size_t k = 0; k < last_x; k++){
+          if(i < z && j < y && k < x)
+            continue;
+          size_t offset = plane_size_xy * i + m_dims[0] * j + k;
+          ret[offset] = static_cast<double>(m_quantized_data[offset]) * cur_q;
+
+        }
+      }
+    }
+    last_x = x;
+    last_y = y;
+    last_z = z;
+    
+  }
+  auto cur_q = q_hierarchy[0];
+
+  for (size_t i = 0; i < last_z; i++){
+    for (size_t j = 0; j < last_y; j++){
+      for (size_t k = 0; k < last_x; k++){
+        size_t offset = plane_size_xy * i + m_dims[0] * j + k;
+        ret[offset] = static_cast<double>(m_quantized_data[offset]) * cur_q;
+
+      }
+    }
+  }
+  return ret;
+}
+
+
 
 void sperr::CDF97::m_dwt3d_wavelet_packet()
 {
@@ -290,6 +390,9 @@ void sperr::CDF97::m_dwt3d_dyadic(size_t num_xforms)
     m_dwt3d_one_level({x, y, z});
   }
 }
+
+
+
 
 void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
 {

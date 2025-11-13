@@ -321,6 +321,7 @@ auto sperr::read_whole_file(std::string filename) -> vec_type<T>
   return buf;
 }
 template auto sperr::read_whole_file(std::string) -> vecf_type;
+template auto sperr::read_whole_file(std::string) -> vec_type<int>;
 template auto sperr::read_whole_file(std::string) -> vecd_type;
 template auto sperr::read_whole_file(std::string) -> vec8_type;
 

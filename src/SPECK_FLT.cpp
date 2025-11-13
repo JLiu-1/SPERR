@@ -490,6 +490,53 @@ FIXED_RATE_HIGH_PREC_LABEL:
     }
   }
 
+
+    auto input = sperr::read_whole_file<uint8_t>("sz3_quant_bins_speck.test");
+  
+    auto sz3_q_data = reinterpret_cast<int*>(input.data());
+
+    auto q_size = input.size() / sizeof(int);
+
+    std::cout<<q_size<<std::endl;
+
+    m_uint_flag = UINTType::UINT16;
+   
+
+    m_instantiate_int_vec();
+
+    const auto total_vals = q_size;
+    std::visit([total_vals](auto&& vec) { vec.resize(total_vals); }, m_vals_ui);
+    m_sign_array.resize(total_vals);
+
+    std::visit(
+        [&sz3_q = sz3_q_data, &signs = m_sign_array, &total_v = total_vals](auto&& vec) {
+          auto bits_x64 = total_v - total_v% 64;
+
+          // Process 64 values at a time.
+          for (size_t i = 0; i < bits_x64; i += 64) {
+            auto bits64 = uint64_t{0};
+            for (size_t j = 0; j < 64; j++) {
+              auto ll = std::llrint(sz3_q[i + j] - 16384);
+              bits64 |= uint64_t{ll >= 0} << j;
+              vec[i + j] = std::abs(ll);
+            }
+            signs.wlong(i, bits64);
+          }
+
+          // Process the remaining bits.
+          for (size_t i = bits_x64; i < total_v; i++) {
+            auto ll = std::llrint(sz3_q[i] - 16384);
+            signs.wbit(i, (ll >= 0));
+            vec[i] = std::abs(ll);
+          }
+        },
+        m_vals_ui);
+
+
+
+
+
+
   // Step 4: Integer SPECK encoding
   m_instantiate_encoder();
   if (m_mode == CompMode::Rate) {
@@ -526,6 +573,22 @@ FIXED_RATE_HIGH_PREC_LABEL:
     return rtn;
 
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
+
+
+  size_t speck_encoded_bits;
+  if (m_encoder.index() == 0)
+    speck_encoded_bits = std::get<0>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  else if (m_encoder.index() == 1)
+    speck_encoded_bits = std::get<1>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  else if (m_encoder.index() == 2)
+    speck_encoded_bits = std::get<2>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  else if (m_encoder.index() == 3)
+    speck_encoded_bits = std::get<3>(m_encoder)->encoded_bitstream_len() * size_t{8};
+  std::cout<<speck_encoded_bits<<" bits produced after SPECK."<<std::endl;
+
+    std::cout<<"FP32 CR:"<<double(total_vals) * 32 / speck_encoded_bits<<std::endl;
+
+
 
   // In CompMode::Rate mode, we see if there's enough bits produced. If not, we adjust `m_q`
   //    so quantiztion is done with a higher precision.

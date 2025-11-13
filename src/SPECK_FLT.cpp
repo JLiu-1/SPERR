@@ -505,6 +505,9 @@ FIXED_RATE_HIGH_PREC_LABEL:
     std::visit([budget](auto&& encoder) { encoder->set_budget(budget); }, m_encoder);
   }
   std::visit([&dims = m_dims](auto&& encoder) { encoder->set_dims(dims); }, m_encoder);
+  auto sign_array = m_sign_array.view_buffer();
+  std::cout<<sign_array.size();
+  sperr::write_n_bytes("sperr_signs.test", sign_array.size() * sizeof(uint64_t), sign_array.data());
   switch (m_uint_flag) {
     case UINTType::UINT8:
       assert(m_vals_ui.index() == 0);
@@ -553,8 +556,7 @@ FIXED_RATE_HIGH_PREC_LABEL:
   }
   if (rtn != RTNType::Good)
     return rtn;
-  auto sign_array = m_sign_array.view_buffer();
-  sperr::write_n_bytes("sperr_signs.test", sign_array.size() * sizeof(uint64_t), sign_array.data());
+
   Timer timer(true);
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
   timer.stop("SPECK encoding");

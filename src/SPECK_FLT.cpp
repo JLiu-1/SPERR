@@ -499,6 +499,7 @@ FIXED_RATE_HIGH_PREC_LABEL:
   
   // Step 4: Integer SPECK encoding
   m_instantiate_encoder();
+
   if (m_mode == CompMode::Rate) {
     auto budget = static_cast<size_t>(m_quality * double(total_vals));  // total num of bits
     std::visit([budget](auto&& encoder) { encoder->set_budget(budget); }, m_encoder);
@@ -552,6 +553,8 @@ FIXED_RATE_HIGH_PREC_LABEL:
   }
   if (rtn != RTNType::Good)
     return rtn;
+  auto sign_array = m_sign_array.view_buffer();
+  sperr::write_n_bytes("sperr_signs.test", sign_array.size() * sizeof(uint64_t), sign_array.data());
   Timer timer(true);
   std::visit([](auto&& encoder) { encoder->encode(); }, m_encoder);
   timer.stop("SPECK encoding");

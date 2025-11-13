@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 #include <numeric>
-
+#include <iostream>
 template <typename T>
 void sperr::SPECK_FLT::copy_data(const T* p, size_t len)
 {
@@ -504,7 +504,7 @@ FIXED_RATE_HIGH_PREC_LABEL:
 
     m_instantiate_int_vec();
 
-    const auto total_vals = q_size;
+    total_vals = q_size;
     std::visit([total_vals](auto&& vec) { vec.resize(total_vals); }, m_vals_ui);
     m_sign_array.resize(total_vals);
 

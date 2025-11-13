@@ -504,12 +504,12 @@ FIXED_RATE_HIGH_PREC_LABEL:
 
     m_instantiate_int_vec();
 
-    total_vals = q_size;
+    size_t q_total_vals = q_size;
     std::visit([total_vals](auto&& vec) { vec.resize(total_vals); }, m_vals_ui);
     m_sign_array.resize(total_vals);
 
     std::visit(
-        [&sz3_q = sz3_q_data, &signs = m_sign_array, &total_v = total_vals](auto&& vec) {
+        [&sz3_q = sz3_q_data, &signs = m_sign_array, &total_v = q_total_vals](auto&& vec) {
           auto bits_x64 = total_v - total_v% 64;
 
           // Process 64 values at a time.

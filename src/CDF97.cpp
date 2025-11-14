@@ -806,6 +806,15 @@ void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)
   double* odd = signal + even_len;
   #ifdef __AVX2__
   if(len >= 8){
+
+    const __m256d vNEG_EPS   = _mm256_set1_pd(-EPSILON);
+    const __m256d vINV_EPS   = _mm256_set1_pd(INV_EPSILON);
+    const __m256d vDELTA     = _mm256_set1_pd(DELTA);
+    const __m256d v2DELTA    = _mm256_set1_pd(2.0 * DELTA);
+    const __m256d vGAMMA     = _mm256_set1_pd(GAMMA);
+    const __m256d vBETA      = _mm256_set1_pd(BETA);
+    const __m256d v2BETA     = _mm256_set1_pd(2.0 * BETA);
+    const __m256d vALPHA     = _mm256_set1_pd(ALPHA);
       // ----------------------------------------------------
     // 1) odd[i] *= (-EPSILON)
     // ----------------------------------------------------

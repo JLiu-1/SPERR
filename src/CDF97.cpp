@@ -603,7 +603,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
   double* even = signal;
   double* odd = signal + even_len;
 #ifdef __AVX2__
-  if(len >= 16){
+  if(len >= 8){
     const __m256d vALPHA        = _mm256_set1_pd(ALPHA);
     const __m256d vBETA         = _mm256_set1_pd(BETA);
     const __m256d v2BETA        = _mm256_set1_pd(2.0 * BETA);
@@ -765,7 +765,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
     return;
   } 
 
-#else
+#endif
   
 
   // Process all the odd elements
@@ -795,7 +795,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
   for (size_t i = 0; i < odd_len; i++)
     odd[i] *= -INV_EPSILON;
 
-#endif
+
 }
 
 void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)
@@ -804,8 +804,204 @@ void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)
   size_t odd_len = len / 2;
   double* even = signal;
   double* odd = signal + even_len;
+  #ifdef __AVX2__
+  if(len >= 8){
+      // ----------------------------------------------------
+    // 1) odd[i] *= (-EPSILON)
+    // ----------------------------------------------------
+    {
+      size_t i = 0;
+      size_t vec_end = odd_len & ~size_t(3); // 向下取 4 的倍数
+      for (; i < vec_end; i += 4) {
+        __m256d vOdd = _mm256_loadu_pd(odd + i);
+        vOdd         = _mm256_mul_pd(vOdd, vNEG_EPS);
+        _mm256_storeu_pd(odd + i, vOdd);
+      }
+      for (; i < odd_len; ++i) {
+        odd[i] *= (-EPSILON);
+      }
+    }
 
-  // Process odd elements
+    // ----------------------------------------------------
+    // 2) even：
+    // even[0] = even[0] * INV_EPS - 2*DELTA*odd[0];
+    // even[i] = even[i] * INV_EPS - DELTA*(odd[i-1] + odd[i]), i=1..even_len-2
+    // even[last] = ...
+    // 中间那段尽量 AVX 化
+    // ----------------------------------------------------
+    {
+      // 边界 i = 0
+      even[0] = even[0] * INV_EPSILON - 2.0 * DELTA * odd[0];
+
+      if (even_len > 2) {
+        size_t i_start = 1;
+        size_t i_max   = even_len - 2;          // 内部 i 最大值
+        // odd 访问 odd[i-1], odd[i]，向量化时 load odd+(i-1) 和 odd+i
+        // 要保证 i+3 <= odd_len-1，并且 i-1 >= 0
+        size_t max_i_by_odd = (odd_len >= 4) ? (odd_len - 1 - 3) : 0;
+        if (max_i_by_odd < i_start) max_i_by_odd = i_start - 1;
+        size_t limit = (i_max < max_i_by_odd) ? i_max : max_i_by_odd;
+
+        size_t vec_end = i_start;
+        if (limit >= i_start) {
+          vec_end = ((limit - i_start + 1) & ~size_t(3)) + i_start; // 4 对齐
+        }
+
+        size_t i = i_start;
+        for (; i < vec_end; i += 4) {
+          __m256d vEven = _mm256_loadu_pd(even + i);
+          __m256d vO0   = _mm256_loadu_pd(odd + i - 1);
+          __m256d vO1   = _mm256_loadu_pd(odd + i);
+          __m256d vSumO = _mm256_add_pd(vO0, vO1);
+
+          vEven = _mm256_mul_pd(vEven, vINV_EPS);      // even * INV_EPS
+          __m256d vUpd = _mm256_mul_pd(vDELTA, vSumO); // DELTA*(odd[i-1]+odd[i])
+          vEven = _mm256_sub_pd(vEven, vUpd);
+
+          _mm256_storeu_pd(even + i, vEven);
+        }
+
+        // 剩余的一点用标量
+        for (; i < even_len - 1; ++i) {
+          even[i] = even[i] * INV_EPSILON - DELTA * (odd[i - 1] + odd[i]);
+        }
+      }
+
+      // 右端边界
+      if (even_len >= 2) {
+        even[even_len - 1] =
+            even[even_len - 1] * INV_EPSILON -
+            DELTA * (odd[even_len - 2] + odd[odd_len - 1]);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 3) odd:
+    // odd[i] -= GAMMA*(even[i] + even[i+1]), i=0..odd_len-2
+    // odd[last] -= GAMMA*(even[odd_len-1] + even[even_len-1])
+    // 尽量 AVX
+    // ----------------------------------------------------
+    {
+      if (odd_len > 1 && even_len > 1) {
+        size_t max_i  = (odd_len >= 2 ? odd_len - 2 : 0);
+        size_t max_i2 = (even_len >= 2 ? even_len - 2 : 0);
+        if (max_i2 < max_i) max_i = max_i2;         // i+1 <= even_len-1
+
+        size_t vec_end = ((max_i + 1) & ~size_t(3)); // 4 对齐
+
+        size_t i = 0;
+        for (; i < vec_end; i += 4) {
+          __m256d vOdd  = _mm256_loadu_pd(odd  + i);
+          __m256d vE0   = _mm256_loadu_pd(even + i);
+          __m256d vE1   = _mm256_loadu_pd(even + i + 1);
+          __m256d vSumE = _mm256_add_pd(vE0, vE1);
+          __m256d vUpd  = _mm256_mul_pd(vGAMMA, vSumE);
+          vOdd = _mm256_sub_pd(vOdd, vUpd);
+          _mm256_storeu_pd(odd + i, vOdd);
+        }
+        // 尾部直到 odd_len-2
+        for (; i < odd_len - 1; ++i) {
+          odd[i] -= GAMMA * (even[i] + even[i + 1]);
+        }
+      } else if (odd_len > 1) {
+        // 极小长度直接标量
+        for (size_t i = 0; i < odd_len - 1; ++i) {
+          odd[i] -= GAMMA * (even[i] + even[i + 1]);
+        }
+      }
+
+      // 最后一个 odd 的边界
+      if (odd_len > 0) {
+        odd[odd_len - 1] -= GAMMA * (even[odd_len - 1] + even[even_len - 1]);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 4) even:
+    // even[0] -= 2*BETA*odd[0];
+    // even[i] -= BETA*(odd[i-1] + odd[i]), i=1..even_len-2
+    // even[last] -= BETA*(odd[even_len-2] + odd[odd_len-1])
+    // 中间段 AVX
+    // ----------------------------------------------------
+    {
+      // 左边界
+      even[0] -= 2.0 * BETA * odd[0];
+
+      if (even_len > 2) {
+        size_t i_start = 1;
+        size_t i_max   = even_len - 2;
+        size_t max_i_by_odd = (odd_len >= 2 ? odd_len - 1 : 0); // i <= odd_len-1
+        if (max_i_by_odd < i_start) max_i_by_odd = i_start - 1;
+        size_t limit = (i_max < max_i_by_odd) ? i_max : max_i_by_odd;
+
+        size_t vec_end = i_start;
+        if (limit >= i_start) {
+          vec_end = ((limit - i_start + 1) & ~size_t(3)) + i_start; // 4 对齐
+        }
+
+        size_t i = i_start;
+        for (; i < vec_end; i += 4) {
+          __m256d vEven = _mm256_loadu_pd(even + i);
+          __m256d vO0   = _mm256_loadu_pd(odd + i - 1);
+          __m256d vO1   = _mm256_loadu_pd(odd + i);
+          __m256d vSumO = _mm256_add_pd(vO0, vO1);
+          __m256d vUpd  = _mm256_mul_pd(vBETA, vSumO);
+          vEven = _mm256_sub_pd(vEven, vUpd);
+          _mm256_storeu_pd(even + i, vEven);
+        }
+
+        for (; i < even_len - 1; ++i) {
+          even[i] -= BETA * (odd[i - 1] + odd[i]);
+        }
+      }
+
+      // 右边界
+      if (even_len >= 2) {
+        even[even_len - 1] -=
+            BETA * (odd[even_len - 2] + odd[odd_len - 1]);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 5) odd:
+    // odd[i] -= ALPHA*(even[i] + even[i+1]), i=0..odd_len-2
+    // odd[last] -= ALPHA*(even[odd_len-1] + even[even_len-1])
+    // AVX
+    // ----------------------------------------------------
+    {
+      if (odd_len > 1 && even_len > 1) {
+        size_t max_i  = (odd_len >= 2 ? odd_len - 2 : 0);
+        size_t max_i2 = (even_len >= 2 ? even_len - 2 : 0);
+        if (max_i2 < max_i) max_i = max_i2;
+
+        size_t vec_end = ((max_i + 1) & ~size_t(3)); // 4 对齐
+
+        size_t i = 0;
+        for (; i < vec_end; i += 4) {
+          __m256d vOdd  = _mm256_loadu_pd(odd + i);
+          __m256d vE0   = _mm256_loadu_pd(even + i);
+          __m256d vE1   = _mm256_loadu_pd(even + i + 1);
+          __m256d vSumE = _mm256_add_pd(vE0, vE1);
+          __m256d vUpd  = _mm256_mul_pd(vALPHA, vSumE);
+          vOdd = _mm256_sub_pd(vOdd, vUpd);
+          _mm256_storeu_pd(odd + i, vOdd);
+        }
+        for (; i < odd_len - 1; ++i) {
+          odd[i] -= ALPHA * (even[i] + even[i + 1]);
+        }
+      } else if (odd_len > 1) {
+        for (size_t i = 0; i < odd_len - 1; ++i) {
+          odd[i] -= ALPHA * (even[i] + even[i + 1]);
+        }
+      }
+
+      if (odd_len > 0) {
+        odd[odd_len - 1] -= ALPHA * (even[odd_len - 1] + even[even_len - 1]);
+      }
+    }
+  }
+
+  #endif
   for (size_t i = 0; i < odd_len; i++)
     odd[i] *= (-EPSILON);
 

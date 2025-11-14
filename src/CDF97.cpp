@@ -1008,6 +1008,7 @@ void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)
         odd[odd_len - 1] -= ALPHA * (even[odd_len - 1] + even[even_len - 1]);
       }
     }
+    return;
   }
 
   #endif

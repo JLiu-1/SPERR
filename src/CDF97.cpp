@@ -598,7 +598,10 @@ void sperr::CDF97::m_sub_volume(dims_type subdims, double* dst) const
 void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
 {
 
-
+  size_t even_len = len - len / 2;
+  size_t odd_len = len / 2;
+  double* even = signal;
+  double* odd = signal + even_len;
 #ifdef __AVX2__
   if(len >= 16){
     const __m256d vALPHA        = _mm256_set1_pd(ALPHA);
@@ -763,10 +766,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
   } 
 
 #else
-  size_t even_len = len - len / 2;
-  size_t odd_len = len / 2;
-  double* even = signal;
-  double* odd = signal + even_len;
+  
 
   // Process all the odd elements
   for (size_t i = 0; i < odd_len - 1; i++)

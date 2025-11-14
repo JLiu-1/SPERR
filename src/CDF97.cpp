@@ -597,6 +597,172 @@ void sperr::CDF97::m_sub_volume(dims_type subdims, double* dst) const
 //
 void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
 {
+
+
+#ifdef __AVX2__
+  if(len >= 16){
+    const __m256d vALPHA        = _mm256_set1_pd(ALPHA);
+    const __m256d vBETA         = _mm256_set1_pd(BETA);
+    const __m256d v2BETA        = _mm256_set1_pd(2.0 * BETA);
+    const __m256d vGAMMA        = _mm256_set1_pd(GAMMA);
+    const __m256d vDELTA        = _mm256_set1_pd(DELTA);
+    const __m256d v2DELTA       = _mm256_set1_pd(2.0 * DELTA);
+    const __m256d vEPSILON      = _mm256_set1_pd(EPSILON);
+    const __m256d vNEG_INV_EPS  = _mm256_set1_pd(-INV_EPSILON);
+
+    // -------------------------
+    // 1) Process all the odd elements: ALPHA step
+    // odd[i] += ALPHA * (even[i] + even[i+1])
+    // -------------------------
+    {
+      size_t i = 0;
+      size_t vec_end = (odd_len > 1) ? ((odd_len - 1) & ~size_t(3)) : 0; // up to odd_len-1 (excluded)
+
+      for (; i < vec_end; i += 4) {
+        __m256d vOdd  = _mm256_loadu_pd(odd + i);
+        __m256d vE0   = _mm256_loadu_pd(even + i);
+        __m256d vE1   = _mm256_loadu_pd(even + i + 1);
+        __m256d vSum  = _mm256_add_pd(vE0, vE1);
+        __m256d vUpd  = _mm256_mul_pd(vALPHA, vSum);
+        vOdd          = _mm256_add_pd(vOdd, vUpd);
+        _mm256_storeu_pd(odd + i, vOdd);
+      }
+      // 尾部（直到 odd_len-2）
+      for (; i < odd_len - 1; ++i) {
+        odd[i] += ALPHA * (even[i] + even[i + 1]);
+      }
+      // 最后一个点的对称边界
+      odd[odd_len - 1] += ALPHA * (even[odd_len - 1] + even[even_len - 1]);
+    }
+
+    // -------------------------
+    // 2) Process all the even elements: BETA step
+    // even[0] += 2*BETA*odd[0];
+    // even[i] += BETA*(odd[i-1] + odd[i]);  i=1..even_len-2
+    // even[even_len-1] += BETA*(odd[even_len-2] + odd[odd_len-1]);
+    // -------------------------
+    {
+      even[0] += 2.0 * BETA * odd[0];
+
+      if (even_len > 2) {
+        size_t i_start = 1;
+        // 内部区间的最大 i：even_len-2
+        // 为了 vector load 安全，我们要保证 i+3 <= odd_len-1
+        size_t i_max   = (even_len >= 2 ? even_len - 2 : 0);
+        size_t vec_end = i_start;
+        if (odd_len > 0 && i_max >= i_start) {
+          size_t max_i_by_odd = (odd_len >= 4) ? (odd_len - 4) : i_start - 1;
+          size_t limit        = (i_max < max_i_by_odd) ? i_max : max_i_by_odd;
+          if (limit >= i_start)
+            vec_end = ((limit - i_start + 1) & ~size_t(3)) + i_start;
+        }
+
+        size_t i = i_start;
+        for (; i < vec_end; i += 4) {
+          __m256d vEven = _mm256_loadu_pd(even + i);
+          __m256d vO0   = _mm256_loadu_pd(odd + i - 1);
+          __m256d vO1   = _mm256_loadu_pd(odd + i);
+          __m256d vSum  = _mm256_add_pd(vO0, vO1);
+          __m256d vUpd  = _mm256_mul_pd(vBETA, vSum);
+          vEven         = _mm256_add_pd(vEven, vUpd);
+          _mm256_storeu_pd(even + i, vEven);
+        }
+        // 剩余的 i=vec_end..even_len-2 标量处理
+        for (; i < even_len - 1; ++i) {
+          even[i] += BETA * (odd[i - 1] + odd[i]);
+        }
+      }
+
+      if (even_len >= 2) {
+        even[even_len - 1] += BETA * (odd[even_len - 2] + odd[odd_len - 1]);
+      }
+    }
+
+    // -------------------------
+    // 3) Process all the odd elements: GAMMA step
+    // odd[i] += GAMMA*(even[i] + even[i+1])
+    // -------------------------
+    {
+      size_t i = 0;
+      size_t vec_end = (odd_len > 1) ? ((odd_len - 1) & ~size_t(3)) : 0;
+
+      for (; i < vec_end; i += 4) {
+        __m256d vOdd  = _mm256_loadu_pd(odd + i);
+        __m256d vE0   = _mm256_loadu_pd(even + i);
+        __m256d vE1   = _mm256_loadu_pd(even + i + 1);
+        __m256d vSum  = _mm256_add_pd(vE0, vE1);
+        __m256d vUpd  = _mm256_mul_pd(vGAMMA, vSum);
+        vOdd          = _mm256_add_pd(vOdd, vUpd);
+        _mm256_storeu_pd(odd + i, vOdd);
+      }
+      for (; i < odd_len - 1; ++i) {
+        odd[i] += GAMMA * (even[i] + even[i + 1]);
+      }
+      odd[odd_len - 1] += GAMMA * (even[odd_len - 1] + even[even_len - 1]);
+    }
+
+    // -------------------------
+    // 4) Process all the even elements: DELTA + scaling EPSILON
+    // even[0] = EPSILON * (even[0] + 2*DELTA*odd[0]);
+    // even[i] = EPSILON * (even[i] + DELTA*(odd[i-1] + odd[i]));
+    // even[even_len-1] = EPSILON * (even[...] + DELTA*(odd[...] + odd[...]));
+    // -------------------------
+    {
+      even[0] = EPSILON * (even[0] + 2.0 * DELTA * odd[0]);
+
+      if (even_len > 2) {
+        size_t i_start = 1;
+        size_t i_max   = (even_len >= 2 ? even_len - 2 : 0);
+        size_t vec_end = i_start;
+        if (odd_len > 0 && i_max >= i_start) {
+          size_t max_i_by_odd = (odd_len >= 4) ? (odd_len - 4) : i_start - 1;
+          size_t limit        = (i_max < max_i_by_odd) ? i_max : max_i_by_odd;
+          if (limit >= i_start)
+            vec_end = ((limit - i_start + 1) & ~size_t(3)) + i_start;
+        }
+
+        size_t i = i_start;
+        for (; i < vec_end; i += 4) {
+          __m256d vEven = _mm256_loadu_pd(even + i);
+          __m256d vO0   = _mm256_loadu_pd(odd + i - 1);
+          __m256d vO1   = _mm256_loadu_pd(odd + i);
+          __m256d vSum  = _mm256_add_pd(vO0, vO1);
+          __m256d vUpd  = _mm256_mul_pd(vDELTA, vSum);
+          vEven         = _mm256_add_pd(vEven, vUpd);
+          vEven         = _mm256_mul_pd(vEven, vEPSILON);
+          _mm256_storeu_pd(even + i, vEven);
+        }
+        for (; i < even_len - 1; ++i) {
+          even[i] = EPSILON * (even[i] + DELTA * (odd[i - 1] + odd[i]));
+        }
+      }
+
+      if (even_len >= 2) {
+        even[even_len - 1] =
+            EPSILON * (even[even_len - 1] + DELTA * (odd[even_len - 2] + odd[odd_len - 1]));
+      }
+    }
+
+    // -------------------------
+    // 5) Process odd elements: scaling by -INV_EPSILON
+    // odd[i] *= -INV_EPSILON;
+    // -------------------------
+    {
+      size_t i = 0;
+      size_t vec_end = (odd_len & ~size_t(3)); // multiple of 4
+      for (; i < vec_end; i += 4) {
+        __m256d vOdd = _mm256_loadu_pd(odd + i);
+        vOdd         = _mm256_mul_pd(vOdd, vNEG_INV_EPS);
+        _mm256_storeu_pd(odd + i, vOdd);
+      }
+      for (; i < odd_len; ++i) {
+        odd[i] *= -INV_EPSILON;
+      }
+    }
+    return;
+  } 
+
+#else
   size_t even_len = len - len / 2;
   size_t odd_len = len / 2;
   double* even = signal;
@@ -628,6 +794,8 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
   // Process odd elements
   for (size_t i = 0; i < odd_len; i++)
     odd[i] *= -INV_EPSILON;
+
+#endif
 }
 
 void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)

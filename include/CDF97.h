@@ -78,18 +78,24 @@ class CDF97 {
   // Perform one level of interleaved 3D dwt/idwt on a given volume (m_dims),
   // specifically on its top left (len_xyz) subset.
   void m_dwt3d_one_level(std::array<size_t, 3> len_xyz);
+  void m_dwt3d_one_level_f(std::array<size_t, 3> len_xyz);
   void m_idwt3d_one_level(std::array<size_t, 3> len_xyz);
+  void m_idwt3d_one_level_f(std::array<size_t, 3> len_xyz);
 
   // Perform one level of 2D dwt/idwt on a given plane (m_dims),
   // specifically on its top left (len_xy) subset.
   void m_dwt2d_one_level(double* plane, std::array<size_t, 2> len_xy);
+  void m_dwt2d_one_level_f(double* plane, std::array<size_t, 2> len_xy);
   void m_idwt2d_one_level(double* plane, std::array<size_t, 2> len_xy);
+  void m_idwt2d_one_level_f(double* plane, std::array<size_t, 2> len_xy);
 
   // Separate even and odd indexed elements to be at the front and back of the dest array.
   // Interleave low and high pass elements to be at even and odd positions of the dest array.
   // Note: sufficient memory space should be allocated by the caller.
   void m_gather(const double* begin, size_t len, double* dest) const;
+  void m_gather_f(const float* begin, size_t len, float* dest) const;
   void m_scatter(const double* begin, size_t len, double* dest) const;
+  void m_scatter_f(const float* begin, size_t len, float* dest) const;
 
   // Two flavors of 3D transforms.
   // They should be invoked by the `dwt3d()` and `idwt3d()` public methods, not users, though.
@@ -108,18 +114,24 @@ class CDF97 {
   // Methods from QccPack with slight changes to combine the even and odd length cases.
   //
   void QccWAVCDF97AnalysisSymmetric(double* signal, size_t signal_length);
+  void QccWAVCDF97AnalysisSymmetric_f(float* signal, size_t signal_length);
   void QccWAVCDF97SynthesisSymmetric(double* signal, size_t signal_length);
+  void QccWAVCDF97SynthesisSymmetric_f(float* signal, size_t signal_length);
 
   //
   // Private data members
   //
   vecd_type m_data_buf;          // Holds the entire input data.
+  vecf_type m_data_buf_f;          // Holds the entire input data.
   dims_type m_dims = {0, 0, 0};  // Dimension of the data volume
 
   // Temporary buffers that are big enough for any 1D column or any 2D slice.
   vecd_type m_slice_buf;
+  vecf_type m_slice_buf_f;
   double* m_aligned_buf = nullptr;
+  float* m_aligned_buf_f = nullptr;
   size_t m_aligned_buf_bytes = 0;  // num. of bytes
+  size_t m_aligned_buf_f_bytes = 0;  // num. of bytes
 
   //
   // Note on the coefficients and constants:
@@ -145,6 +157,15 @@ class CDF97 {
   const double DELTA = s0 / t0;
   const double EPSILON = std::sqrt(2.0) * t0;
   const double INV_EPSILON = 1.0 / EPSILON;
+
+
+  const float ALPHA_f       = (float)ALPHA;
+  const float BETA_f        = (float)BETA;
+  const float GAMMA_f       = (float)GAMMA;
+  const float DELTA_f       = (float)DELTA;
+  const float EPSILON_f     = (float)EPSILON;
+  const float INV_EPSILON_f = (float)INV_EPSILON;
+
 
   // QccPack coefficients
   //

@@ -339,7 +339,7 @@ void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
      if(lev ==0)
       m_idwt3d_one_level_f({x, y, z});
-    //else
+    else
       m_idwt3d_one_level({x, y, z});
   }
 }

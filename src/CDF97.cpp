@@ -4,7 +4,7 @@
 #include <cassert>
 #include <numeric>  // std::accumulate()
 #include <type_traits>
-
+#include <iostream>
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif

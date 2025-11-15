@@ -723,31 +723,31 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
     // idx_even: 取 0,2,4,6；idx_odd: 取 1,3,5,7
     const __m256i idx_even = _mm256_setr_epi32(0, 2, 4, 6, 0, 0, 0, 0);
     const __m256i idx_odd  = _mm256_setr_epi32(1, 3, 5, 7, 0, 0, 0, 0);
-    std::cout<<"g1"<<std::endl;
+    //std::cout<<"g1"<<std::endl;
 
     // 每次处理 16 个 float：src[0..15]
     for (; src + 16 <= src_end; src += 16) {
       __m256 v0 = _mm256_loadu_ps(src);      // 0,1,2,3,4,5,6,7
       __m256 v1 = _mm256_loadu_ps(src + 8);  // 8,9,10,11,12,13,14,15
-       std::cout<<"g2"<<std::endl;
+      // std::cout<<"g2"<<std::endl;
       // 从每个 8 元向量中取出 0,2,4,6（偶数索引）和 1,3,5,7（奇数索引）
       __m256 ev0_full = _mm256_permutevar8x32_ps(v0, idx_even);  // 0,2,4,6,*,*,*,*
       __m256 ev1_full = _mm256_permutevar8x32_ps(v1, idx_even);  // 8,10,12,14,*,*,*,*
       __m256 od0_full = _mm256_permutevar8x32_ps(v0, idx_odd);   // 1,3,5,7,*,*,*,*
       __m256 od1_full = _mm256_permutevar8x32_ps(v1, idx_odd);   // 9,11,13,15,*,*,*,*
-       std::cout<<"g3"<<std::endl;
+      // std::cout<<"g3"<<std::endl;
       // 只需要每个向量的低 4 个元素
       __m128 ev0 = _mm256_castps256_ps128(ev0_full);  // 0,2,4,6
       __m128 ev1 = _mm256_castps256_ps128(ev1_full);  // 8,10,12,14
       __m128 od0 = _mm256_castps256_ps128(od0_full);  // 1,3,5,7
       __m128 od1 = _mm256_castps256_ps128(od1_full);  // 9,11,13,15
-       std::cout<<"g4 "<<len<<" "<<src-src_begin<<std::endl;
+       //std::cout<<"g4std::endl;
       // 依次写入偶数下标 / 奇数下标
       _mm_storeu_ps(dst_evens,      ev0);
       _mm_storeu_ps(dst_evens + 4,  ev1);
       _mm_storeu_ps(dst_odds,       od0);
       _mm_storeu_ps(dst_odds  + 4,  od1);
-       std::cout<<"g5"<<std::endl;
+     //  std::cout<<"g5"<<std::endl;
       dst_evens += 8;  // 本轮处理了 8 个偶数下标
       dst_odds  += 8;  // 本轮处理了 8 个奇数下标
     }
@@ -757,12 +757,12 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
       *(dst_evens++) = src[0];  // 偶数下标
       *(dst_odds++)  = src[1];  // 奇数下标
     }
-     std::cout<<"g6"<<std::endl;
+   //  std::cout<<"g6"<<std::endl;
     if (src < src_end) {
       // 剩下最后一个偶数下标元素
       *(dst_evens++) = *src;
     }
-     std::cout<<"g7"<<std::endl;
+  //   std::cout<<"g7"<<std::endl;
      return;
    }
 #endif

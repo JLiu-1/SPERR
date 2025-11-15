@@ -309,9 +309,9 @@ void sperr::CDF97::m_idwt3d_dyadic(size_t num_xforms)
     auto [x, xd] = sperr::calc_approx_detail_len(m_dims[0], lev - 1);
     auto [y, yd] = sperr::calc_approx_detail_len(m_dims[1], lev - 1);
     auto [z, zd] = sperr::calc_approx_detail_len(m_dims[2], lev - 1);
-     if(lev ==0)
-      m_idwt3d_one_level_f({x, y, z});
-    else
+     //if(lev ==0)
+    //  m_idwt3d_one_level_f({x, y, z});
+    //else
       m_idwt3d_one_level({x, y, z});
   }
 }
@@ -497,7 +497,7 @@ void sperr::CDF97::m_dwt3d_one_level_f(std::array<size_t, 3> len_xyz)
   const auto col_len = len_xyz[2];
   for (size_t z = 0; z < col_len; z++) {
     const size_t offset = plane_size_xy * z;
-    m_dwt2d_one_level_f(m_data_buf.data() + offset, {len_xyz[0], len_xyz[1]});
+    m_dwt2d_one_level(m_data_buf.data() + offset, {len_xyz[0], len_xyz[1]});
   }
 
   // Second, do one level of transform on all Z columns.  Strategy:

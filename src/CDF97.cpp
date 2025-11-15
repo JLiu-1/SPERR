@@ -712,6 +712,7 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
 {
 #ifdef __AVX2__
   if (len >= 16){
+    const float * src_begin = src;
     const float* src_end = src + len;
 
     // 前半段存偶下标元素，后半段存奇下标
@@ -740,7 +741,7 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
       __m128 ev1 = _mm256_castps256_ps128(ev1_full);  // 8,10,12,14
       __m128 od0 = _mm256_castps256_ps128(od0_full);  // 1,3,5,7
       __m128 od1 = _mm256_castps256_ps128(od1_full);  // 9,11,13,15
-       std::cout<<"g4"<<std::endl;
+       std::cout<<"g4 "<<len<<" "<<src-src_begin<<std::endl;
       // 依次写入偶数下标 / 奇数下标
       _mm_storeu_ps(dst_evens,      ev0);
       _mm_storeu_ps(dst_evens + 4,  ev1);

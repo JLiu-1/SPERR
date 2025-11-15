@@ -41,8 +41,8 @@ auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNTy
 
     size_t alignment_f = 64;  // 256 bits
     size_t alloc_chunks_f = (max_col * 4 + 63) / alignment_f;
-    m_aligned_buf_bytes_f = alignment_f * alloc_chunks_f;
-    m_aligned_buf_f = static_cast<float*>(std::aligned_alloc(alignment_f, m_aligned_buf_bytes_f));
+    m_aligned_buf__fbytes = alignment_f * alloc_chunks_f;
+    m_aligned_buf_f = static_cast<float*>(std::aligned_alloc(alignment_f, m_aligned_buf_f_bytes));
   }
 
   auto max_slice = std::max(std::max(dims[0] * dims[1], dims[0] * dims[2]), dims[1] * dims[2]);
@@ -383,8 +383,8 @@ void sperr::CDF97::m_dwt2d_one_level_f(double* plane, std::array<size_t, 2> len_
   // First, perform DWT along X for every row
   for (size_t i = 0; i < len_xy[1]; i++) {
     auto* pos = plane + i * m_dims[0];
-    m_gather_f(pos, len_xy[0], m_aligned_buf_f);
-    this->QccWAVCDF97AnalysisSymmetric(m_aligned_buf_f, len_xy[0]);
+    m_gather_f(pos, len_xy[0], m_aligned_buf);
+    this->QccWAVCDF97AnalysisSymmetric(m_aligned_buf, len_xy[0]);//this is double, currently
     for(size_t i = 0; i < len_xy[0]; i ++)
       pos[i] = m_aligned_buf_f[i];
   }
@@ -1090,7 +1090,7 @@ void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(double* signal, size_t len)
 }
 
 
-void sperr::CDF97::QccWAVCDF97AnalysisSymmetric(float* signal, size_t len)
+void sperr::CDF97::QccWAVCDF97AnalysisSymmetric_f(float* signal, size_t len)
 {
   size_t even_len = len - len / 2;
   size_t odd_len  = len / 2;
@@ -1526,7 +1526,7 @@ void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(double* signal, size_t len)
   odd[odd_len - 1] -= ALPHA * (even[odd_len - 1] + even[even_len - 1]);
 }
 
-void sperr::CDF97::QccWAVCDF97SynthesisSymmetric(float* signal, size_t len)
+void sperr::CDF97::QccWAVCDF97SynthesisSymmetric_f(float* signal, size_t len)
 {
   size_t even_len = len - len / 2;
   size_t odd_len  = len / 2;

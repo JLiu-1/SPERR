@@ -711,57 +711,60 @@ void sperr::CDF97::m_gather(const double* src, size_t len, double* dst) const
 void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
 {
 #ifdef __AVX2__
-  const float* src_end = src + len;
+  if (len >= 16){
+    const float* src_end = src + len;
 
-  // 前半段存偶下标元素，后半段存奇下标
-  const size_t even_count = len - len / 2;  // = ceil(len/2)
-  float* dst_evens = dst;
-  float* dst_odds  = dst + even_count;
+    // 前半段存偶下标元素，后半段存奇下标
+    const size_t even_count = len - len / 2;  // = ceil(len/2)
+    float* dst_evens = dst;
+    float* dst_odds  = dst + even_count;
 
-  // idx_even: 取 0,2,4,6；idx_odd: 取 1,3,5,7
-  const __m256i idx_even = _mm256_setr_epi32(0, 2, 4, 6, 0, 0, 0, 0);
-  const __m256i idx_odd  = _mm256_setr_epi32(1, 3, 5, 7, 0, 0, 0, 0);
-  std::cout<<"g1"<<std::endl;
+    // idx_even: 取 0,2,4,6；idx_odd: 取 1,3,5,7
+    const __m256i idx_even = _mm256_setr_epi32(0, 2, 4, 6, 0, 0, 0, 0);
+    const __m256i idx_odd  = _mm256_setr_epi32(1, 3, 5, 7, 0, 0, 0, 0);
+    std::cout<<"g1"<<std::endl;
 
-  // 每次处理 16 个 float：src[0..15]
-  for (; src + 16 <= src_end; src += 16) {
-    __m256 v0 = _mm256_loadu_ps(src);      // 0,1,2,3,4,5,6,7
-    __m256 v1 = _mm256_loadu_ps(src + 8);  // 8,9,10,11,12,13,14,15
-     std::cout<<"g2"<<std::endl;
-    // 从每个 8 元向量中取出 0,2,4,6（偶数索引）和 1,3,5,7（奇数索引）
-    __m256 ev0_full = _mm256_permutevar8x32_ps(v0, idx_even);  // 0,2,4,6,*,*,*,*
-    __m256 ev1_full = _mm256_permutevar8x32_ps(v1, idx_even);  // 8,10,12,14,*,*,*,*
-    __m256 od0_full = _mm256_permutevar8x32_ps(v0, idx_odd);   // 1,3,5,7,*,*,*,*
-    __m256 od1_full = _mm256_permutevar8x32_ps(v1, idx_odd);   // 9,11,13,15,*,*,*,*
-     std::cout<<"g3"<<std::endl;
-    // 只需要每个向量的低 4 个元素
-    __m128 ev0 = _mm256_castps256_ps128(ev0_full);  // 0,2,4,6
-    __m128 ev1 = _mm256_castps256_ps128(ev1_full);  // 8,10,12,14
-    __m128 od0 = _mm256_castps256_ps128(od0_full);  // 1,3,5,7
-    __m128 od1 = _mm256_castps256_ps128(od1_full);  // 9,11,13,15
-     std::cout<<"g4"<<std::endl;
-    // 依次写入偶数下标 / 奇数下标
-    _mm_storeu_ps(dst_evens,      ev0);
-    _mm_storeu_ps(dst_evens + 4,  ev1);
-    _mm_storeu_ps(dst_odds,       od0);
-    _mm_storeu_ps(dst_odds  + 4,  od1);
-     std::cout<<"g5"<<std::endl;
-    dst_evens += 8;  // 本轮处理了 8 个偶数下标
-    dst_odds  += 8;  // 本轮处理了 8 个奇数下标
-  }
+    // 每次处理 16 个 float：src[0..15]
+    for (; src + 16 <= src_end; src += 16) {
+      __m256 v0 = _mm256_loadu_ps(src);      // 0,1,2,3,4,5,6,7
+      __m256 v1 = _mm256_loadu_ps(src + 8);  // 8,9,10,11,12,13,14,15
+       std::cout<<"g2"<<std::endl;
+      // 从每个 8 元向量中取出 0,2,4,6（偶数索引）和 1,3,5,7（奇数索引）
+      __m256 ev0_full = _mm256_permutevar8x32_ps(v0, idx_even);  // 0,2,4,6,*,*,*,*
+      __m256 ev1_full = _mm256_permutevar8x32_ps(v1, idx_even);  // 8,10,12,14,*,*,*,*
+      __m256 od0_full = _mm256_permutevar8x32_ps(v0, idx_odd);   // 1,3,5,7,*,*,*,*
+      __m256 od1_full = _mm256_permutevar8x32_ps(v1, idx_odd);   // 9,11,13,15,*,*,*,*
+       std::cout<<"g3"<<std::endl;
+      // 只需要每个向量的低 4 个元素
+      __m128 ev0 = _mm256_castps256_ps128(ev0_full);  // 0,2,4,6
+      __m128 ev1 = _mm256_castps256_ps128(ev1_full);  // 8,10,12,14
+      __m128 od0 = _mm256_castps256_ps128(od0_full);  // 1,3,5,7
+      __m128 od1 = _mm256_castps256_ps128(od1_full);  // 9,11,13,15
+       std::cout<<"g4"<<std::endl;
+      // 依次写入偶数下标 / 奇数下标
+      _mm_storeu_ps(dst_evens,      ev0);
+      _mm_storeu_ps(dst_evens + 4,  ev1);
+      _mm_storeu_ps(dst_odds,       od0);
+      _mm_storeu_ps(dst_odds  + 4,  od1);
+       std::cout<<"g5"<<std::endl;
+      dst_evens += 8;  // 本轮处理了 8 个偶数下标
+      dst_odds  += 8;  // 本轮处理了 8 个奇数下标
+    }
 
-  // 尾部处理（最多剩下 0~15 个元素，标量按偶/奇拷贝）
-  for (; src + 2 <= src_end; src += 2) {
-    *(dst_evens++) = src[0];  // 偶数下标
-    *(dst_odds++)  = src[1];  // 奇数下标
-  }
-   std::cout<<"g6"<<std::endl;
-  if (src < src_end) {
-    // 剩下最后一个偶数下标元素
-    *(dst_evens++) = *src;
-  }
-   std::cout<<"g7"<<std::endl;
-#else
+    // 尾部处理（最多剩下 0~15 个元素，标量按偶/奇拷贝）
+    for (; src + 2 <= src_end; src += 2) {
+      *(dst_evens++) = src[0];  // 偶数下标
+      *(dst_odds++)  = src[1];  // 奇数下标
+    }
+     std::cout<<"g6"<<std::endl;
+    if (src < src_end) {
+      // 剩下最后一个偶数下标元素
+      *(dst_evens++) = *src;
+    }
+     std::cout<<"g7"<<std::endl;
+     return;
+   }
+#endif
   // 标量 fallback：和 double 版逻辑一致
   size_t low_count  = len - len / 2;  // 偶数下标个数
   size_t high_count = len / 2;        // 奇数下标个数
@@ -774,7 +777,6 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
   for (size_t i = 0; i < high_count; ++i) {
     *q++ = p[i * 2 + 1];   // 1,3,5,...
   }
-#endif
 }
 
 
@@ -782,36 +784,39 @@ void sperr::CDF97::m_gather_f(const float* src, size_t len, float* dst) const
 void sperr::CDF97::m_scatter(const double* begin, size_t len, double* dst) const
 {
 #ifdef __AVX2__
-  const double* even_end = begin + len - len / 2;
-  const double* odd_beg = even_end;
-  const double* dst_end = dst + len;
+  if(len >= 8){
+    const double* even_end = begin + len - len / 2;
+    const double* odd_beg = even_end;
+    const double* dst_end = dst + len;
 
-  // Process 8 elements at a time
-  for (; begin + 4 < even_end; begin += 4) {
-    __m256d v0 = _mm256_loadu_pd(begin);    // 0, 1, 2, 3
-    __m256d v1 = _mm256_loadu_pd(odd_beg);  // 4, 5, 6, 7
+    // Process 8 elements at a time
+    for (; begin + 4 < even_end; begin += 4) {
+      __m256d v0 = _mm256_loadu_pd(begin);    // 0, 1, 2, 3
+      __m256d v1 = _mm256_loadu_pd(odd_beg);  // 4, 5, 6, 7
 
-    __m256d evens = _mm256_unpacklo_pd(v0, v1);  // 0, 4, 2, 6
-    __m256d odds = _mm256_unpackhi_pd(v0, v1);   // 1, 5, 3, 7
+      __m256d evens = _mm256_unpacklo_pd(v0, v1);  // 0, 4, 2, 6
+      __m256d odds = _mm256_unpackhi_pd(v0, v1);   // 1, 5, 3, 7
 
-    __m256d result1 = _mm256_permute2f128_pd(evens, odds, 0x20);  // 0, 4, 1, 5
-    __m256d result2 = _mm256_permute2f128_pd(evens, odds, 0x31);  // 2, 6, 3, 7
+      __m256d result1 = _mm256_permute2f128_pd(evens, odds, 0x20);  // 0, 4, 1, 5
+      __m256d result2 = _mm256_permute2f128_pd(evens, odds, 0x31);  // 2, 6, 3, 7
 
-    _mm256_store_pd(dst, result1);
-    _mm256_store_pd(dst + 4, result2);
+      _mm256_store_pd(dst, result1);
+      _mm256_store_pd(dst + 4, result2);
 
-    dst += 8;
-    odd_beg += 4;
+      dst += 8;
+      odd_beg += 4;
+    }
+
+    for (; dst < dst_end - 1; dst += 2) {
+      *dst = *(begin++);
+      *(dst + 1) = *(odd_beg++);
+    }
+
+    if (dst < dst_end)
+      *dst = *begin;
+    return;
   }
-
-  for (; dst < dst_end - 1; dst += 2) {
-    *dst = *(begin++);
-    *(dst + 1) = *(odd_beg++);
-  }
-
-  if (dst < dst_end)
-    *dst = *begin;
-#else
+#endif
   size_t low_count = len - len / 2, high_count = len / 2;
   for (size_t i = 0; i < low_count; i++) {
     *(dst + i * 2) = *begin;
@@ -821,7 +826,7 @@ void sperr::CDF97::m_scatter(const double* begin, size_t len, double* dst) const
     *(dst + i * 2 + 1) = *begin;
     ++begin;
   }
-#endif
+
 }
 
 void sperr::CDF97::m_scatter_f(const float* begin, size_t len, float* dst) const

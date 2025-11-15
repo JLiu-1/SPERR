@@ -550,7 +550,9 @@ void sperr::CDF97::m_dwt3d_one_level_f(std::array<size_t, 3> len_xyz)
        std::cout<<"p4"<<std::endl;
       for (size_t i = 0; i < stride; i++) {
         auto* itr = m_slice_buf_f.data() + i * col_len;
+        std::cout<<"p4.1"<<std::endl;
         m_gather_f(itr, col_len, m_aligned_buf_f);
+         std::cout<<"p4.2"<<std::endl;
         this->QccWAVCDF97AnalysisSymmetric_f(m_aligned_buf_f, col_len);
         std::copy(m_aligned_buf_f, m_aligned_buf_f + col_len, itr);
       }

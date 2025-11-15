@@ -1,5 +1,5 @@
 #include "SPECK_FLT.h"
-
+#include "Timer.h"
 #include <algorithm>
 #include <cassert>
 #include <cfenv>
@@ -438,9 +438,12 @@ auto sperr::SPECK_FLT::compress() -> RTNType
   }
 
   // Step 2: wavelet transform
+  Timer timer(true);
   m_cdf.take_data(std::move(m_vals_d), m_dims);
   m_wavelet_xform();
   m_vals_d = m_cdf.release_data();
+  timer.stop("DWT");
+
 
   // Step 2.1: Estimate `m_q`, and store it as part of `m_condi_stream`.
   if (m_mode == CompMode::Rate) {
@@ -468,8 +471,10 @@ FIXED_RATE_HIGH_PREC_LABEL:
     rtn = m_cdf.take_data(std::move(m_vals_d), m_dims);
     if (rtn != RTNType::Good)
       return rtn;
+    timer.start();
     m_inverse_wavelet_xform(false);  // No multi-resolution needed!
     m_vals_d = m_cdf.release_data();
+    timer.stop("IDWT");
     auto LOS = std::vector<Outlier>();
     LOS.reserve(0.04 * total_vals);  // Reserve space to hold about 4% of total values.
     for (size_t i = 0; i < total_vals; i++) {

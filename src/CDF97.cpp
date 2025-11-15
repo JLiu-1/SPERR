@@ -43,7 +43,7 @@ auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNTy
   }
 
 
-  if (max_col * sizeof(float) > m_aligned_buf_bytes_f) {
+  if (max_col * sizeof(float) > m_aligned_buf_f_bytes) {
     if (m_aligned_buf_f)
       std::free(m_aligned_buf_f);
     size_t alignment_f = 64;  // 256 bits
@@ -86,7 +86,7 @@ auto sperr::CDF97::take_data(vecd_type&& buf, dims_type dims) -> RTNType
     m_aligned_buf = static_cast<double*>(std::aligned_alloc(alignment, m_aligned_buf_bytes));
   }
 
-  if (max_col * sizeof(float) > m_aligned_buf_bytes_f) {
+  if (max_col * sizeof(float) > m_aligned_buf_f_bytes) {
     if (m_aligned_buf_f)
       std::free(m_aligned_buf_f);
     size_t alignment_f = 64;  // 256 bits

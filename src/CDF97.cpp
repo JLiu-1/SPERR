@@ -39,11 +39,23 @@ auto sperr::CDF97::copy_data(const T* data, size_t len, dims_type dims) -> RTNTy
     m_aligned_buf_bytes = alignment * alloc_chunks;
     m_aligned_buf = static_cast<double*>(std::aligned_alloc(alignment, m_aligned_buf_bytes));
 
+    
+  }
+
+
+  if (max_col * sizeof(float) > m_aligned_buf_bytes) {
+    if (m_aligned_buf_f)
+      std::free(m_aligned_buf_f);
     size_t alignment_f = 64;  // 256 bits
     size_t alloc_chunks_f = (max_col * 4 + 63) / alignment_f;
     m_aligned_buf_f_bytes = alignment_f * alloc_chunks_f;
     m_aligned_buf_f = static_cast<float*>(std::aligned_alloc(alignment_f, m_aligned_buf_f_bytes));
+
+    
   }
+
+
+  
 
   auto max_slice = std::max(std::max(dims[0] * dims[1], dims[0] * dims[2]), dims[1] * dims[2]);
   if (max_slice > m_slice_buf.size())
@@ -74,9 +86,25 @@ auto sperr::CDF97::take_data(vecd_type&& buf, dims_type dims) -> RTNType
     m_aligned_buf = static_cast<double*>(std::aligned_alloc(alignment, m_aligned_buf_bytes));
   }
 
+  f (max_col * sizeof(float) > m_aligned_buf_bytes) {
+    if (m_aligned_buf_f)
+      std::free(m_aligned_buf_f);
+    size_t alignment_f = 64;  // 256 bits
+    size_t alloc_chunks_f = (max_col * 4 + 63) / alignment_f;
+    m_aligned_buf_f_bytes = alignment_f * alloc_chunks_f;
+    m_aligned_buf_f = static_cast<float*>(std::aligned_alloc(alignment_f, m_aligned_buf_f_bytes));
+
+    
+  }
+
+
+
+
   auto max_slice = std::max(std::max(dims[0] * dims[1], dims[0] * dims[2]), dims[1] * dims[2]);
   if (max_slice > m_slice_buf.size())
     m_slice_buf.resize(max_slice);
+  if (max_slice > m_slice_buf_f.size())
+    m_slice_buf_f.resize(max_slice);
 
   return RTNType::Good;
 }

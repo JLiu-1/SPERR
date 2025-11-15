@@ -521,7 +521,7 @@ void sperr::CDF97::m_dwt3d_one_level(std::array<size_t, 3> len_xyz)
 void sperr::CDF97::m_dwt3d_one_level_f(std::array<size_t, 3> len_xyz)
 {
   // First, do one level of transform on all XY planes.
-   std::cout<<"p1"<<std::endl;
+   //std::cout<<"p1"<<std::endl;
   const auto plane_size_xy = m_dims[0] * m_dims[1];
   const auto col_len = len_xyz[2];
   for (size_t z = 0; z < col_len; z++) {
@@ -537,31 +537,31 @@ void sperr::CDF97::m_dwt3d_one_level_f(std::array<size_t, 3> len_xyz)
   // Note: the reason to process eight columns at a time is that a cache line
   // is usually 64 bytes, or 16 floats. That means when you pay the cost to retrieve
   // one value from the Z column, its neighboring 15 values are available for free!
-  std::cout<<"p2"<<std::endl;
+ // std::cout<<"p2"<<std::endl;
   for (size_t y = 0; y < len_xyz[1]; y++) {
     for (size_t x = 0; x < len_xyz[0]; x += 8) {
       const size_t xy_offset = y * m_dims[0] + x;
       const auto stride = std::min(16ul, len_xyz[0] - x);
-       std::cout<<"p3"<<std::endl;
+    //   std::cout<<"p3"<<std::endl;
       for (size_t z = 0; z < col_len; z++) {
         for (size_t i = 0; i < stride; i++)
           m_slice_buf_f[z + i * col_len] = m_data_buf[z * plane_size_xy + xy_offset + i];
       }
-       std::cout<<"p4"<<std::endl;
+     //  std::cout<<"p4"<<std::endl;
       for (size_t i = 0; i < stride; i++) {
         auto* itr = m_slice_buf_f.data() + i * col_len;
-        std::cout<<"p4.1"<<std::endl;
+     //   std::cout<<"p4.1"<<std::endl;
         m_gather_f(itr, col_len, m_aligned_buf_f);
-         std::cout<<"p4.2"<<std::endl;
+    //     std::cout<<"p4.2"<<std::endl;
         this->QccWAVCDF97AnalysisSymmetric_f(m_aligned_buf_f, col_len);
         std::copy(m_aligned_buf_f, m_aligned_buf_f + col_len, itr);
       }
-       std::cout<<"p5"<<std::endl;
+    //   std::cout<<"p5"<<std::endl;
       for (size_t z = 0; z < col_len; z++) {
         for (size_t i = 0; i < stride; i++)
           m_data_buf[z * plane_size_xy + xy_offset + i] = m_slice_buf_f[z + i * col_len];
       }
-       std::cout<<"p6"<<std::endl;
+     //  std::cout<<"p6"<<std::endl;
     }
   }
 

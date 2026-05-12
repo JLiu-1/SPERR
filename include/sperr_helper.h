@@ -66,6 +66,11 @@ enum class RTNType {
 //
 // Helper functions
 //
+
+// Allocate and deallocate a chunk of ALIGNED memory, for both UNIX and Windows.
+auto aligned_malloc(size_t alignment, size_t size) -> void*;
+void aligned_free(void* p);
+
 // Given a certain length, how many transforms to be performed?
 auto num_of_xforms(size_t len) -> size_t;
 
@@ -160,6 +165,10 @@ auto calc_stats(const T* arr1, const T* arr2, size_t arr_len, size_t omp_nthread
 
 template <typename T>
 auto kahan_summation(const T*, size_t) -> T;
+
+// Returns the bit position of the most significant bit (0-based), or -1 for zero.
+template <typename T>
+auto msb_position(T v) -> int8_t;
 
 // Given a whole volume size and a desired chunk size, this helper function
 // returns a list of chunks specified by 6 integers:

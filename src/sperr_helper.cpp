@@ -11,9 +11,31 @@
 #include <immintrin.h>
 #endif
 
+#if __cplusplus >= 202002L
+#include <bit>
+#endif
+
 #ifdef USE_OMP
 #include <omp.h>
 #endif
+
+auto sperr::aligned_malloc(size_t alignment, size_t size) -> void*
+{
+#ifdef _WIN32
+  return _aligned_malloc(size, alignment);
+#else
+  return std::aligned_alloc(alignment, size);
+#endif
+}
+
+void sperr::aligned_free(void* p)
+{
+#ifdef _WIN32
+  _aligned_free(p);
+#else
+  std::free(p);
+#endif
+}
 
 auto sperr::num_of_xforms(size_t len) -> size_t
 {
@@ -708,3 +730,22 @@ template auto sperr::any_ge(const uint8_t*, size_t, uint8_t) -> bool;
 template auto sperr::any_ge(const uint16_t*, size_t, uint16_t) -> bool;
 template auto sperr::any_ge(const uint32_t*, size_t, uint32_t) -> bool;
 template auto sperr::any_ge(const uint64_t*, size_t, uint64_t) -> bool;
+
+template <typename T>
+auto sperr::msb_position(T v) -> int8_t
+{
+#if __cplusplus >= 202002L
+  return static_cast<int8_t>(sizeof(T) * 8 - 1 - std::countl_zero(v));
+#else
+  int8_t pos = -1;
+  while (v) {
+    v >>= 1;
+    pos++;
+  }
+  return pos;
+#endif
+}
+template auto sperr::msb_position(uint8_t) -> int8_t;
+template auto sperr::msb_position(uint16_t) -> int8_t;
+template auto sperr::msb_position(uint32_t) -> int8_t;
+template auto sperr::msb_position(uint64_t) -> int8_t;

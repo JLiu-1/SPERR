@@ -1713,9 +1713,13 @@ WORKLOG.md                       # this file
 `.sz3_original` backups of the two ported vendored headers are kept
 in-tree for rollback.
 
-All of the above is committed on branch `0.8.5-cc-cli` as of
-2026-05-15. `git log --stat` will show the commit; `runs/` (bench
-artifact dumps, ~770 MB) is now `.gitignore`d.
+All of the above is committed on branch `0.8.5-cc-cli` as a single
+commit `dee853f` ("Add HuffZstd and LC integer-coding backends
+(3D + 2D)") as of 2026-05-15. Pushed to local origin (`~/SPERR-fork`)
+and onward to GitHub (`https://github.com/JLiu-1/SPERR`,
+branch `0.8.5-cc-cli`). `runs/` (bench artifact dumps, ~770 MB) is
+`.gitignore`d. Local repo's git identity set to
+`Jliu-1 <jliu447@ucr.edu>` (per-repo, not global).
 
 ## Reference: paper findings (IPDPS 2023)
 

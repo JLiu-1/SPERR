@@ -24,6 +24,7 @@ class SPERR3D_OMP_C {
   void set_tolerance(double);
   void set_bitrate(double);
   void set_q_coeff(double);
+  void set_int_backend(IntBackend b) { m_int_backend = b; }
 #ifdef EXPERIMENTING
   void set_direct_q(double);
 #endif
@@ -40,6 +41,7 @@ class SPERR3D_OMP_C {
   CompMode m_mode = CompMode::Unknown;
   double m_quality = 0.0;
   double m_q_coeff = 1.5;
+  IntBackend m_int_backend = IntBackend::SPECK;
   dims_type m_dims = {0, 0, 0};        // Dimension of the entire volume
   dims_type m_chunk_dims = {0, 0, 0};  // Preferred dimensions for a chunk
   std::vector<vec8_type> m_encoded_streams;

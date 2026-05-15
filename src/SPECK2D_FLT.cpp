@@ -1,25 +1,47 @@
 #include "SPECK2D_FLT.h"
+#include "HuffZstd_INT.h"
+#include "LC_INT.h"
 #include "SPECK2D_INT_DEC.h"
 #include "SPECK2D_INT_ENC.h"
+
+namespace {
+
+template <typename T>
+auto make_enc(sperr::IntBackend b) -> std::unique_ptr<sperr::SPECK_INT<T>>
+{
+  switch (b) {
+    case sperr::IntBackend::HuffZstd: return std::make_unique<sperr::HuffZstd_INT<T>>();
+    case sperr::IntBackend::LC:       return std::make_unique<sperr::LC_INT<T>>();
+    default:                          return std::make_unique<sperr::SPECK2D_INT_ENC<T>>();
+  }
+}
+
+template <typename T>
+auto make_dec(sperr::IntBackend b) -> std::unique_ptr<sperr::SPECK_INT<T>>
+{
+  switch (b) {
+    case sperr::IntBackend::HuffZstd: return std::make_unique<sperr::HuffZstd_INT<T>>();
+    case sperr::IntBackend::LC:       return std::make_unique<sperr::LC_INT<T>>();
+    default:                          return std::make_unique<sperr::SPECK2D_INT_DEC<T>>();
+  }
+}
+
+}  // namespace
 
 void sperr::SPECK2D_FLT::m_instantiate_encoder()
 {
   switch (m_uint_flag) {
     case UINTType::UINT8:
-      if (m_encoder.index() != 0 || std::get<0>(m_encoder) == nullptr)
-        m_encoder = std::make_unique<SPECK2D_INT_ENC<uint8_t>>();
+      m_encoder = make_enc<uint8_t>(m_int_backend);
       break;
     case UINTType::UINT16:
-      if (m_encoder.index() != 1 || std::get<1>(m_encoder) == nullptr)
-        m_encoder = std::make_unique<SPECK2D_INT_ENC<uint16_t>>();
+      m_encoder = make_enc<uint16_t>(m_int_backend);
       break;
     case UINTType::UINT32:
-      if (m_encoder.index() != 2 || std::get<2>(m_encoder) == nullptr)
-        m_encoder = std::make_unique<SPECK2D_INT_ENC<uint32_t>>();
+      m_encoder = make_enc<uint32_t>(m_int_backend);
       break;
     default:
-      if (m_encoder.index() != 3 || std::get<3>(m_encoder) == nullptr)
-        m_encoder = std::make_unique<SPECK2D_INT_ENC<uint64_t>>();
+      m_encoder = make_enc<uint64_t>(m_int_backend);
   }
 }
 
@@ -27,20 +49,16 @@ void sperr::SPECK2D_FLT::m_instantiate_decoder()
 {
   switch (m_uint_flag) {
     case UINTType::UINT8:
-      if (m_decoder.index() != 0 || std::get<0>(m_decoder) == nullptr)
-        m_decoder = std::make_unique<SPECK2D_INT_DEC<uint8_t>>();
+      m_decoder = make_dec<uint8_t>(m_int_backend);
       break;
     case UINTType::UINT16:
-      if (m_decoder.index() != 1 || std::get<1>(m_decoder) == nullptr)
-        m_decoder = std::make_unique<SPECK2D_INT_DEC<uint16_t>>();
+      m_decoder = make_dec<uint16_t>(m_int_backend);
       break;
     case UINTType::UINT32:
-      if (m_decoder.index() != 2 || std::get<2>(m_decoder) == nullptr)
-        m_decoder = std::make_unique<SPECK2D_INT_DEC<uint32_t>>();
+      m_decoder = make_dec<uint32_t>(m_int_backend);
       break;
     default:
-      if (m_decoder.index() != 3 || std::get<3>(m_decoder) == nullptr)
-        m_decoder = std::make_unique<SPECK2D_INT_DEC<uint64_t>>();
+      m_decoder = make_dec<uint64_t>(m_int_backend);
   }
 }
 

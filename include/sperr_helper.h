@@ -41,6 +41,13 @@ enum class SigType : unsigned char { Insig, Sig, Dunno, Garbage };
 
 enum class UINTType : unsigned char { UINT8, UINT16, UINT32, UINT64 };
 
+// Integer-coding backend used after wavelet+quantization in SPECK_FLT.
+// SPECK = original bitplane encoder; HuffZstd = SZ3 Huffman + ZSTD;
+// LC = LC framework's BIT_4 → RZE_4 → RZE_1 pipeline + ZSTD.
+// The chosen backend is recorded in two Conditioner header bits
+// (meta[1] = bit 0, meta[2] = bit 1) so the decoder can self-dispatch.
+enum class IntBackend : uint8_t { SPECK = 0, HuffZstd = 1, LC = 2 };
+
 enum class CompMode : unsigned char {
   PSNR,
   PWE,

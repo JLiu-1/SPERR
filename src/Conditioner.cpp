@@ -116,6 +116,30 @@ auto sperr::Conditioner::retrieve_q(condi_type header) const -> double
   return q;
 }
 
+void sperr::Conditioner::save_backend(condi_type& header, IntBackend b) const
+{
+  // Two-bit encoding in meta[1..2]: 00=SPECK, 01=HuffZstd, 10=LC.
+  auto meta = sperr::unpack_8_booleans(header[0]);
+  const auto code = static_cast<uint8_t>(b);
+  meta[m_backend_idx]     = (code & 0x1) != 0;
+  meta[m_backend_idx + 1] = (code & 0x2) != 0;
+  header[0] = sperr::pack_8_booleans(meta);
+}
+
+auto sperr::Conditioner::retrieve_backend(condi_type header) const -> IntBackend
+{
+  auto meta = sperr::unpack_8_booleans(header[0]);
+  const uint8_t code =
+      static_cast<uint8_t>(meta[m_backend_idx]) |
+      (static_cast<uint8_t>(meta[m_backend_idx + 1]) << 1);
+  switch (code) {
+    case 0: return IntBackend::SPECK;
+    case 1: return IntBackend::HuffZstd;
+    case 2: return IntBackend::LC;
+    default: return IntBackend::SPECK;  // 0b11 reserved; fallback
+  }
+}
+
 auto sperr::Conditioner::m_calc_mean(const vecd_type& buf) -> double
 {
   assert(buf.size() % m_num_strides == 0);

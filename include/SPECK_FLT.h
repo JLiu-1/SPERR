@@ -53,6 +53,7 @@ class SPECK_FLT {
   void set_bitrate(double bpp);
   void set_q_coeff(double qc);
   void set_dims(dims_type);
+  void set_int_backend(IntBackend b) { m_int_backend = b; }
   auto integer_len() const -> size_t;
 
 #ifdef EXPERIMENTING
@@ -67,6 +68,7 @@ class SPECK_FLT {
 
  protected:
   UINTType m_uint_flag = UINTType::UINT64;
+  IntBackend m_int_backend = IntBackend::SPECK;
   bool m_has_outlier = false;           // encoding (PWE mode) and decoding
   CompMode m_mode = CompMode::Unknown;  // encoding only
   double m_q = 0.0;                     // encoding and decoding

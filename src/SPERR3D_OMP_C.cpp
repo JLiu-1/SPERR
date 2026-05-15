@@ -111,6 +111,7 @@ auto sperr::SPERR3D_OMP_C::compress(const T* buf, size_t buf_len) -> RTNType
     assert(!chunk.empty());
     compressor->take_data(std::move(chunk));
     compressor->set_dims({chunk_idx[i][1], chunk_idx[i][3], chunk_idx[i][5]});
+    compressor->set_int_backend(m_int_backend);
     switch (m_mode) {
       case CompMode::PSNR:
         compressor->set_psnr(m_quality);

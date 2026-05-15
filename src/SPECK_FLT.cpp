@@ -1,12 +1,101 @@
 #include "SPECK_FLT.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cfenv>
 #include <cfloat>  // FLT_ROUNDS
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <map>
 #include <numeric>
+#include <utility>
+#include <vector>
+
+namespace {
+
+// Phase 0 measurement helper: dump distribution of quantized integers after
+// m_midtread_quantize(). Gated by env var SPERR_QDUMP=1. Writes to stderr.
+template <typename T>
+void dump_qstats(const std::vector<T>& mags, const sperr::Bitmask& signs, double q)
+{
+  const size_t N = mags.size();
+  if (N == 0) {
+    std::fprintf(stderr, "[QDUMP] empty\n");
+    return;
+  }
+
+  size_t n_zero = 0;
+  size_t n_gt_32k = 0;
+  size_t n_gt_64k = 0;
+  uint64_t max_mag = 0;
+  for (size_t i = 0; i < N; ++i) {
+    const uint64_t m = static_cast<uint64_t>(mags[i]);
+    if (m == 0) ++n_zero;
+    if (m > 32768) ++n_gt_32k;
+    if (m > 65535) ++n_gt_64k;
+    if (m > max_mag) max_mag = m;
+  }
+
+  // Build histogram of signed bins (bin = sign ? -mag : +mag).
+  std::map<int64_t, size_t> hist;
+  for (size_t i = 0; i < N; ++i) {
+    const uint64_t m = static_cast<uint64_t>(mags[i]);
+    const bool s = (m == 0) ? false : signs.rbit(i);
+    const int64_t bin = s ? -static_cast<int64_t>(m) : static_cast<int64_t>(m);
+    ++hist[bin];
+  }
+
+  double H = 0.0;
+  for (const auto& kv : hist) {
+    const double p = static_cast<double>(kv.second) / static_cast<double>(N);
+    H -= p * std::log2(p);
+  }
+
+  std::fprintf(stderr,
+               "[QDUMP] N=%zu q=%.6e alphabet=%zu max_mag=%llu "
+               "zero_frac=%.4f gt32k_frac=%.6f gt64k_frac=%.6f H=%.4f bits "
+               "ideal_bytes=%.0f\n",
+               N, q, hist.size(), static_cast<unsigned long long>(max_mag),
+               static_cast<double>(n_zero) / N,
+               static_cast<double>(n_gt_32k) / N,
+               static_cast<double>(n_gt_64k) / N,
+               H, H * static_cast<double>(N) / 8.0);
+
+  // Top-15 most-frequent signed bins.
+  std::vector<std::pair<int64_t, size_t>> top(hist.begin(), hist.end());
+  std::partial_sort(top.begin(),
+                    top.begin() + std::min<size_t>(top.size(), 15),
+                    top.end(),
+                    [](const auto& a, const auto& b) { return a.second > b.second; });
+  std::fprintf(stderr, "[QDUMP] top_bins:");
+  for (size_t i = 0; i < std::min<size_t>(top.size(), 15); ++i)
+    std::fprintf(stderr, " %ld:%.3f%%", static_cast<long>(top[i].first),
+                 100.0 * static_cast<double>(top[i].second) / N);
+  std::fprintf(stderr, "\n");
+
+  // log2(|mag|) bucket histogram (bucket 0 = zero; bucket k = mag in [2^(k-1), 2^k)).
+  std::array<size_t, 33> bucket{};
+  for (size_t i = 0; i < N; ++i) {
+    const uint64_t m = static_cast<uint64_t>(mags[i]);
+    int b = 0;
+    if (m != 0) {
+      b = 64 - __builtin_clzll(m);  // 1..64
+      if (b > 32) b = 32;
+    }
+    ++bucket[b];
+  }
+  std::fprintf(stderr, "[QDUMP] log2_buckets:");
+  for (size_t i = 0; i < bucket.size(); ++i) {
+    if (bucket[i] > 0)
+      std::fprintf(stderr, " %zu:%zu", i, bucket[i]);
+  }
+  std::fprintf(stderr, "\n");
+}
+
+}  // namespace
 
 template <typename T>
 void sperr::SPECK_FLT::copy_data(const T* p, size_t len)
@@ -53,6 +142,7 @@ auto sperr::SPECK_FLT::use_bitstream(const void* p, size_t len) -> RTNType
   else {
     m_q = m_conditioner.retrieve_q(m_condi_bitstream);
     assert(m_q > 0.0);
+    m_int_backend = m_conditioner.retrieve_backend(m_condi_bitstream);
   }
 
   // Bitstream parser 2.1: based on the number of bitplanes, decide on an integer length to use,
@@ -413,6 +503,12 @@ auto sperr::SPECK_FLT::compress() -> RTNType
   if (m_mode == sperr::CompMode::Unknown)
     return RTNType::CompModeUnknown;
 
+  // HuffZstd / LC backends have no progressive truncation and cannot honor a bit
+  // budget, so Rate / --bpp mode is not supported with them.
+  if (m_mode == CompMode::Rate &&
+      (m_int_backend == IntBackend::HuffZstd || m_int_backend == IntBackend::LC))
+    return RTNType::Error;
+
   m_has_outlier = false;
 
   // Step 1: data goes through the conditioner
@@ -421,6 +517,7 @@ auto sperr::SPECK_FLT::compress() -> RTNType
   m_condi_bitstream = m_conditioner.condition(m_vals_d, m_dims);
   if (m_conditioner.is_constant(m_condi_bitstream[0]))
     return RTNType::Good;
+  m_conditioner.save_backend(m_condi_bitstream, m_int_backend);
 
   // Collect information for different compression modes.
   auto param_q = 0.0;  // assist estimating `m_q`.
@@ -462,6 +559,11 @@ FIXED_RATE_HIGH_PREC_LABEL:
   auto rtn = m_midtread_quantize();
   if (rtn != RTNType::Good)
     return rtn;
+
+  // Phase 0 measurement: dump quantized-integer distribution when SPERR_QDUMP is set.
+  if (std::getenv("SPERR_QDUMP")) {
+    std::visit([this](auto&& vec) { dump_qstats(vec, m_sign_array, m_q); }, m_vals_ui);
+  }
 
   // CompMode::PWE only: perform outlier coding: find out all the outliers, and encode them!
   if (m_mode == CompMode::PWE) {

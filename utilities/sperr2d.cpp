@@ -182,6 +182,12 @@ int main(int argc, char* argv[])
                       ->excludes(psnr_ptr)
                       ->group("Compression settings");
 
+  auto backend = std::string("speck");
+  app.add_option("--backend", backend,
+                 "Integer-coding backend: speck (default), huffzstd, or lc.")
+      ->needs(cptr)
+      ->group("Compression settings");
+
 #ifdef EXPERIMENTING
   auto direct_q = 0.0;
   auto* dq_ptr = app.add_option("--dq", direct_q, "Directly provide the quantization step size q.")
@@ -219,6 +225,14 @@ int main(int argc, char* argv[])
     return __LINE__;
   }
 #endif
+  if (cflag && backend != "speck" && backend != "huffzstd" && backend != "lc") {
+    std::cout << "--backend must be 'speck', 'huffzstd', or 'lc'." << std::endl;
+    return __LINE__;
+  }
+  if (cflag && (backend == "huffzstd" || backend == "lc") && bpp != 0.0) {
+    std::cout << "--backend " << backend << " does not support --bpp (fixed-rate mode)." << std::endl;
+    return __LINE__;
+  }
   if (cflag && (pwe < 0.0 || vre < 0.0 ||psnr < 0.0)) {
     std::cout << "Compression quality (--psnr, --pwe) must be positive!" << std::endl;
     return __LINE__;
@@ -284,6 +298,12 @@ int main(int argc, char* argv[])
     }
     auto encoder = std::make_unique<sperr::SPECK2D_FLT>();
     encoder->set_dims(dims);
+    {
+      sperr::IntBackend bk = sperr::IntBackend::SPECK;
+      if (backend == "huffzstd")  bk = sperr::IntBackend::HuffZstd;
+      else if (backend == "lc")   bk = sperr::IntBackend::LC;
+      encoder->set_int_backend(bk);
+    }
     if (ftype == 32)
       encoder->copy_data(reinterpret_cast<const float*>(input.data()), total_vals);
     else

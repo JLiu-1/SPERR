@@ -68,3 +68,6 @@ install*/
 test_data/wmag256.float
 test_data/wmag512.float
 test_data/wmag500.float
+
+# bench artifact dumps (per-chunk bins, decoded outputs, etc.)
+runs/

@@ -103,6 +103,25 @@ endif()
 
 
 #
+# Vendored third-party deps for the HuffZstd backend (Phase 1).
+#   - third_party/zstd:     ZSTD library
+#   - third_party/sz3_huff: SZ3's HuffmanEncoder.hpp + Lossless_zstd.hpp + deps
+#
+set( ZSTD_BUILD_PROGRAMS OFF CACHE INTERNAL "Disable zstd CLI" )
+set( ZSTD_BUILD_SHARED   OFF CACHE INTERNAL "Static zstd only"  )
+set( ZSTD_BUILD_STATIC   ON  CACHE INTERNAL "Static zstd"       )
+set( ZSTD_BUILD_TESTS    OFF CACHE INTERNAL "Disable zstd tests" )
+add_subdirectory( third_party/zstd EXCLUDE_FROM_ALL )
+
+# SZ3 Huffman is header-only.  Expose the include root so vendored
+# headers can resolve "SZ3/encoder/HuffmanEncoder.hpp" etc.
+add_library( sz3_huff INTERFACE )
+target_include_directories( sz3_huff INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sz3_huff )
+# Lossless_zstd.hpp includes <zstd.h>; libzstd_static publishes its headers.
+target_link_libraries( sz3_huff INTERFACE libzstd_static )
+
+#
 # Compile the SPERR library
 #
 add_subdirectory( src )

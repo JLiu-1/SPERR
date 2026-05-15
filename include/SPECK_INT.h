@@ -46,19 +46,22 @@ class SPECK_INT {
   // Retrieve the number of useful bits of a SPECK bitstream from its header.
   auto get_speck_num_bits(const void*) const -> uint64_t;
   // Retrieve the number of bytes of a SPECK bitstream (including header) from its header.
-  auto get_stream_full_len(const void*) const -> uint64_t;
+  // Made virtual so alternative integer-coding backends (e.g. HuffZstd_INT) can
+  // override the length-extraction logic if their payload uses a different layout.
+  virtual auto get_stream_full_len(const void*) const -> uint64_t;
 
   // Actions
-  void encode();
-  void decode();
+  // Virtual so alternative backends can replace the integer coding stage.
+  virtual void encode();
+  virtual void decode();
 
   // Input
   auto use_coeffs(vecui_type coeffs, Bitmask signs) -> RTNType;
-  void use_bitstream(const void* p, size_t len);
+  virtual void use_bitstream(const void* p, size_t len);
 
   // Output
-  auto encoded_bitstream_len() const -> size_t;
-  void append_encoded_bitstream(vec8_type& buf) const;
+  virtual auto encoded_bitstream_len() const -> size_t;
+  virtual void append_encoded_bitstream(vec8_type& buf) const;
   auto release_coeffs() -> vecui_type&&;
   auto release_signs() -> Bitmask&&;
   auto view_coeffs() const -> const vecui_type&;

@@ -14,6 +14,8 @@ add_library( SPERR
              SPECK1D_INT.cpp
              SPECK1D_INT_ENC.cpp
              SPECK1D_INT_DEC.cpp
+             HuffZstd_INT.cpp
+             LC_INT.cpp
              SPECK_FLT.cpp
              SPECK3D_FLT.cpp
              SPECK2D_FLT.cpp
@@ -23,8 +25,9 @@ add_library( SPERR
              SPERR3D_Stream_Tools.cpp
              Outlier_Coder.cpp
              SPERR_C_API.cpp )
-             
+
 target_include_directories( SPERR PUBLIC ${CMAKE_SOURCE_DIR}/include )
+target_link_libraries( SPERR PRIVATE sz3_huff )
 
 if(USE_OMP)
   target_compile_options(   SPERR PUBLIC ${OpenMP_CXX_FLAGS} )

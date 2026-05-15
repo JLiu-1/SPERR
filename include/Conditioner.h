@@ -23,8 +23,14 @@ class Conditioner {
   void save_q(condi_type& header, double q) const;
   auto retrieve_q(condi_type header) const -> double;
 
+  // Store/load the integer-coding backend in meta[1] of the condi header.
+  // Must be called after `condition()` populates the header.
+  void save_backend(condi_type& header, IntBackend b) const;
+  auto retrieve_backend(condi_type header) const -> IntBackend;
+
  private:
   const size_t m_constant_field_idx = 7;
+  const size_t m_backend_idx = 1;
   const size_t m_default_num_strides = 2048;
 
   // Calculation is carried out by strides, which should be a divisor of the input data size.
